@@ -1,8 +1,8 @@
-﻿using DiscordBot.Common.Utils;
+﻿using SuperNova.DiscordBot.Common.Utils;
 using System;
 using System.Text.RegularExpressions;
 
-namespace DiscordBot.Business.Modules.Dice
+namespace SuperNova.DiscordBot.Business.Modules.Dice
 {
     public class Dice
     {

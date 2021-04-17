@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using SuperNova.AWS.Logging.Contract;
 using System.Composition;
-namespace DiscordBot.Common.Core.Lambda
+namespace SuperNova.DiscordBot.Common.Core.Lambda
 {
 
     public class LoggingResource

@@ -5,7 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DiscordBot.Data.Contract
+namespace SuperNova.DiscordBot.Data.Contract
 {
 	public interface IConnectionService
 	{

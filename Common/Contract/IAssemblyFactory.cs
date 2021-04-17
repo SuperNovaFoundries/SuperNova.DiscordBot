@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 
-namespace DiscordBot.Common.Contract
+namespace SuperNova.DiscordBot.Common.Contract
 {
-	public interface IAssemblyFactory
-	{
-		IEnumerable<string> Assemblies();
-	}
+    public interface IAssemblyFactory
+    {
+        IEnumerable<string> Assemblies();
+    }
 
 
 

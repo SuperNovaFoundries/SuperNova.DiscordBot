@@ -1,9 +1,9 @@
-﻿using DiscordBot.Common.Contract;
+﻿using SuperNova.DiscordBot.Common.Contract;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 
-namespace DiscordBot.Business.Core
+namespace SuperNova.DiscordBot.Business.Core
 {
     [Export(typeof(IAssemblyFactory))]
     public class DiscordAssemblyFactory : IAssemblyFactory

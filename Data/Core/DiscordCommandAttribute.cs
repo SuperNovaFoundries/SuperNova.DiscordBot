@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace DiscordBot.Data.Core
+namespace SuperNova.DiscordBot.Data.Core
 {
-	public class DiscordCommandAttribute : Attribute { }
+    public class DiscordCommandAttribute : Attribute { }
 
 
 

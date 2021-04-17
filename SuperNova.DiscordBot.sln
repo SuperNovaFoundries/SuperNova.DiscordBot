@@ -12,7 +12,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{500019D3-7095-4844-B305-A71B19486681}"
 	ProjectSection(SolutionItems) = preProject
 		buildspec.yml = buildspec.yml
-		serverless.yml = serverless.yml
+		serverless.template = serverless.template
 	EndProjectSection
 EndProject
 Global
