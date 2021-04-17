@@ -16,26 +16,14 @@ using Amazon.Translate.Model;
 namespace DiscordBot.Business.Commands
 {
 
-    public class DiscordModule : ModuleBase<SocketCommandContext>
+
+    [DiscordCommand]
+    public class TranslateCommand : ModuleBase<SocketCommandContext>
     {
         [Import]
         private IServiceLoggerFactory LogFactory { get; set; } = null;
+        private ILogger Logger { get; }
 
-        private ILogger _logger = null;
-        private string _name;
-        protected ILogger Logger => _logger ?? (_logger = LogFactory.GetLogger(_name));
-
-        public DiscordModule(string moduleName)
-        {
-            _name = moduleName;
-            MEFLoader.SatisfyImportsOnce(this);
-        }
-    }
-
-
-    [DiscordCommand]
-    public class TranslateCommand : DiscordModule
-    {
         private Dictionary<string, string> _languageMap = new Dictionary<string, string>
         {
             {"Arabic", "ar"},
@@ -102,7 +90,10 @@ namespace DiscordBot.Business.Commands
         [Summary("Translate some text!")]
         public async Task TranslateAsync() => await ReplyAsync(GetHelp());
 
-        public TranslateCommand() : base(nameof(TranslateCommand)) { }
+        public TranslateCommand()  {
+            MEFLoader.SatisfyImportsOnce(this);
+            Logger = LogFactory.GetLogger(nameof(TranslateCommand));
+        }
     }
 
 
