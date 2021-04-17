@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Common;
+using Microsoft.Extensions.Logging;
 using SuperNova.AWS.Logging.Contract;
 using System.Composition;
 namespace SuperNova.DiscordBot.Common.Core.Lambda
@@ -14,6 +15,7 @@ namespace SuperNova.DiscordBot.Common.Core.Lambda
 
         protected LoggingResource(string name)
         {
+            MEFLoader.SatisfyImportsOnce(this);
             _name = name;
         }
     }
