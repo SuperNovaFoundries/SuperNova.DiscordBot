@@ -4,12 +4,12 @@ using System.Composition;
 using System.Threading.Tasks;
 using System.Threading;
 using SuperNova.DiscordBot.Data.Contract;
-using Common;
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
-using Microsoft.Extensions.Logging;
 using System;
-using SuperNova.DiscordBot.Common.Core.Lambda;
+using SuperNova.AWS.Logging;
+using SuperNova.MEF.NetCore;
+using Microsoft.Extensions.Logging;
 
 namespace SuperNova.DiscordBot.Business.Lambda
 {

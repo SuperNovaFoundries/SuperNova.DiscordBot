@@ -2,7 +2,7 @@
 using Amazon.SQS;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using SuperNova.DiscordBot.Common.Core.Lambda;
+using SuperNova.AWS.Logging;
 using SuperNova.DiscordBot.Common.Utils;
 using System;
 using System.Collections.Generic;

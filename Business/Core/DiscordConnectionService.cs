@@ -1,12 +1,9 @@
-﻿using Common;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using SuperNova.DiscordBot.Data.Contract;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using SuperNova.DiscordBot.Common.Contract;
-using SuperNova.DiscordBot.Common.Core.Lambda;
 using SuperNova.DiscordBot.Common.Utils;
 using SuperNova.DiscordBot.Data.Core;
 using System;
@@ -17,6 +14,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using Timer = System.Timers.Timer;
+using SuperNova.AWS.Logging;
+using SuperNova.MEF.NetCore;
+using Microsoft.Extensions.Logging;
 
 namespace SuperNova.DiscordBot.Business.Core
 {
