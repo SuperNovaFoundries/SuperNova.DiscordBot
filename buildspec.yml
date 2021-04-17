@@ -21,7 +21,7 @@ phases:
         commands:
 artifacts:
     files:
-        - "buildInfo.xml"
+        - "buildinfo.xml"
         - "bin/*.dll"
         - "bin/*.json"
         - "serverless.yml"
