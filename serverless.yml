@@ -1,0 +1,94 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: ""
+Parameters:
+    CodeBucket:
+        Description: "Where's the code?"
+        Type: "String"
+        Default: "supernova-builds"
+        MinLength: "0"
+        MaxLength: "256"
+    LoggingLevel:
+        Description: "Logging level (conforms w/ microsoft logging levels)"
+        Type: "Number"
+        Default: "0"
+        MinValue: "0"
+        MaxValue: "6"
+Resources:
+    LambdaRole:
+        Type: "AWS::IAM::Role"
+        Metadata:
+            Comment: "Access role for Lambdas"
+        Properties:
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    Effect: "Allow"
+                    Principal:
+                        Service: "lambda.amazonaws.com"
+                    Action: "sts:AssumeRole"
+            Policies:
+              - PolicyName: "LambdaPolicy"
+                PolicyDocument:
+                    Version: "2012-10-17"        
+                    Statement:
+                    - Effect: "Allow"
+                      Action: "logs:*"
+                      Resource: "*"
+                    - Effect: "Allow"
+                      Action: "lambda:*"
+                      Resource: "*"
+                    - Effect: "Allow"
+                      Action: "dynamodb:*"
+                      Resource: "*"
+                    - Effect: "Allow"
+                      Action: "translate:*"
+                      Resource: "*"
+                    - Effect: "Allow"
+                      Action: "comprehend:*"
+                      Resource: "*"     
+                    - Effect: "Allow"
+                      Action: "secretsmanager:*"
+                      Resource: "*"  
+                    - Effect: "Allow"
+                      Action: 
+                        - "xray:PutTraceSegments"
+                        - "xray:PutTelemetryRecords"
+                      Resource: "*"                         
+    BotRun:
+        Type: "AWS::Lambda::Function"
+        Metadata:
+            Comment: "Test Lambda, runs for 15 minutes (free on t2.nano)"
+        Properties:
+            Code:
+                S3Bucket: !Ref CodeBucket
+                S3Key: SuperNova.DiscordBot\12j7jz\SuperNova.DiscordBot.zip
+            FunctionName: "BotRun"
+            Handler: "SuperNova.DiscordBot.Business::SuperNova.DiscordBot.Business.Lambda.DiscordBot::RunAsync"
+            MemorySize: 128
+            Role: !GetAtt LambdaRole.Arn
+            Runtime: "dotnetcore3.1"
+            Timeout: 900
+            TracingConfig:
+                Mode: "Active"
+            Environment:
+                Variables:
+                    LOGGING_LEVEL: !Ref LoggingLevel 
+    BotRunTrigger:
+        Type: "AWS::Events::Rule"
+        Properties:
+            Description: "Triggers the BotRun lambda once every 15 minutes"
+            ScheduleExpression: "rate(15 minutes)"
+            State: "ENABLED"
+            Targets:
+              - Id: "BotRunSchedule"
+                Arn: !GetAtt BotRun.Arn
+    
+    BotRunTriggerInvokeLambdaPermission:
+        DependsOn: BotRun
+        Type: "AWS::Lambda::Permission"
+        Properties:
+            FunctionName: !GetAtt BotRun.Arn
+            Action: "lambda:InvokeFunction"
+            Principal: "events.amazonaws.com"
+            SourceArn: !GetAtt BotRunTrigger.Arn
+                

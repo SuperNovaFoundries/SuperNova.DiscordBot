@@ -1,0 +1,29 @@
+version: 0.2
+phases:
+    pre_build:
+        commands:
+            - export DLLVERSION=$(date +1.0.%y%j.%H%M)
+            - echo "BuildInfo" >> buildInfo.txt
+            - echo "BuildId:" $CODEBUILD_BUILD_ID >> buildInfo.txt
+            - echo "Source Version:"$CODEBUILD_SOURCE_VERSION >> buildInfo.txt
+            - echo "DLL Version:"$DLLVERSION >> buildInfo.txt
+            - echo "Image:"$CODEBUILD_BUILD_IMAGE >> buildInfo.txt
+            - echo "Initiator:"$CODEBUILD_INITIATOR >> buildInfo.txt
+            - echo "KMS Key:"$CODEBUILD_KMS_KEY_ID >> buildInfo.txt
+            - echo "BuildId:"$CODEBUILD_BUILD_ID >> buildInfo.txt
+            - sed -i 's#\\#/#g' SuperNova.DiscordBot.sln
+            
+    build:
+        commands:
+            - dotnet restore
+            - dotnet build SuperNova.DiscordBot.sln -c Release /fl /p:Version=$DLLVERSION /p:DebugSymbols=false /p:DebugType=None
+    post_build:
+        commands:
+artifacts:
+    files:
+        - "buildInfo.txt"
+        - "bin/*.dll"
+        - "bin/*.json"
+        - "serverless.yml"
+    name: SuperNova.DiscordBot-$(date +1.0.%y%j.%H%M)
+    discard-paths: yes
