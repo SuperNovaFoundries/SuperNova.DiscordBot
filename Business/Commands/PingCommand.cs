@@ -1,5 +1,5 @@
 ﻿using Discord.Commands;
-using DiscordBot.Data.Core;
+using SuperNova.DiscordBot.Data.Core;
 using System.Threading.Tasks;
 
 namespace SuperNova.DiscordBot.Business.Commands

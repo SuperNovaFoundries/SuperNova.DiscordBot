@@ -2,7 +2,7 @@
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using DiscordBot.Data.Contract;
+using SuperNova.DiscordBot.Data.Contract;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SuperNova.DiscordBot.Common.Contract;

@@ -3,7 +3,7 @@ using Amazon.Lambda.Serialization.Json;
 using System.Composition;
 using System.Threading.Tasks;
 using System.Threading;
-using DiscordBot.Data.Contract;
+using SuperNova.DiscordBot.Data.Contract;
 using Common;
 using Amazon;
 using Amazon.SecretsManager;

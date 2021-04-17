@@ -1,13 +1,13 @@
 //using Discord.Commands;
-//using DiscordBot.Business.Modules.Dice;
-//using DiscordBot.Data.Core;
+//using SuperNova.DiscordBot.Business.Modules.Dice;
+//using SuperNova.DiscordBot.Data.Core;
 //using System.Threading.Tasks;
 //using System.Net;
 //using System.Collections.Generic;
 //using System.Linq;
 //using Microsoft.Extensions.Logging;
-//using DiscordBot.Common.Core;
-//using DiscordBot.Common.Utils;
+//using SuperNova.DiscordBot.Common.Core;
+//using SuperNova.DiscordBot.Common.Utils;
 //using System;
 //using System.Composition;
 //using SuperNova.AWS.Logging.Contract;

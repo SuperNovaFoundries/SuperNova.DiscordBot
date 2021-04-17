@@ -1,11 +1,11 @@
 ﻿//using Amazon.Translate.Model;
 //using Discord.Commands;
-//using DiscordBot.Data.Core;
+//using SuperNova.DiscordBot.Data.Core;
 //using System.Threading.Tasks;
 //using Amazon.Translate;
-//using DiscordBot.Common.Core;
+//using SuperNova.DiscordBot.Common.Core;
 //using Microsoft.Extensions.Logging;
-//using DiscordBot.Common.Utils;
+//using SuperNova.DiscordBot.Common.Utils;
 //using System.Collections.Generic;
 //using System.Linq;
 //using System;
