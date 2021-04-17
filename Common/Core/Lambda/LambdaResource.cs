@@ -9,14 +9,16 @@ namespace SuperNova.DiscordBot.Common.Core.Lambda
     {
         [Import]
         private IServiceLoggerFactory _logFactory { get; set; } = null;
-        private ILogger _logger = null;
         private readonly string _name;
-        protected ILogger Logger => _logger ?? (_logger = _logFactory.GetLogger(_name));
+        protected ILogger Logger { get; }
 
         protected LoggingResource(string name)
         {
             MEFLoader.SatisfyImportsOnce(this);
+
             _name = name;
+            Logger = _logFactory.GetLogger(_name);
+            Logger.LogInformation(_name);
         }
     }
 }
