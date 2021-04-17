@@ -61,7 +61,7 @@ Resources:
         Properties:
             Code:
                 S3Bucket: !Ref CodeBucket
-                S3Key: SuperNova.DiscordBot\12j7jz\SuperNova.DiscordBot.zip
+                S3Key: SuperNova.DiscordBot/12j7jz/SuperNova.DiscordBot.zip
             FunctionName: "BotRun"
             Handler: "SuperNova.DiscordBot.Business::SuperNova.DiscordBot.Business.Lambda.DiscordBot::RunAsync"
             MemorySize: 128
