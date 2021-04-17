@@ -5,10 +5,8 @@ using System.Threading.Tasks;
 using System.Threading;
 using SuperNova.DiscordBot.Data.Contract;
 using Common;
-using Amazon;
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
-using System.IO;
 using Microsoft.Extensions.Logging;
 using System;
 using SuperNova.DiscordBot.Common.Core.Lambda;
@@ -23,9 +21,17 @@ namespace SuperNova.DiscordBot.Business.Lambda
 
         private int TimeToRun { get; } = 894000;
 
-        public DiscordBot() : base("SuperNova.DiscordBot")
+        public DiscordBot() : base(nameof(DiscordBot))
         {
-            MEFLoader.SatisfyImportsOnce(this);
+            try
+            {
+                MEFLoader.SatisfyImportsOnce(this);
+            }
+            catch(Exception ex)
+            {
+                throw new Exception("MEF FAILED!!" + ex.Message + ex.StackTrace + ex.InnerException?.Message + ex.InnerException?.StackTrace);
+            }
+            
 
         }
 
@@ -35,22 +41,10 @@ namespace SuperNova.DiscordBot.Business.Lambda
             try
             {
                 var waitHandle = new AutoResetEvent(false);
-
-                using var client = new AmazonSecretsManagerClient();
-                var response = await client.GetSecretValueAsync(new GetSecretValueRequest
-                {
-                    SecretId = "supernova/setup/discordtoken"
-                });
-
-                if (response.SecretString == null)
-                {
-                    Logger.LogError("FATAL: Unable to retrieve discord token!!");
-                    return;
-                }
-                await _connectionService.InitializeAsync(Client_Ready, response.SecretString, TimeToRun, waitHandle);
-
+                
+                await _connectionService.InitializeAsync(Client_Ready, await GetTokenAsync(), TimeToRun, waitHandle);
+                
                 waitHandle.WaitOne();
-
                 await _connectionService.DisconnectAsync();
             }
             catch (Exception ex)
@@ -63,6 +57,22 @@ namespace SuperNova.DiscordBot.Business.Lambda
         public async Task Client_Ready()
         {
             await _connectionService.Client.SetGameAsync("Assimilating nueral interactions...");
+        }
+
+        public async Task<string> GetTokenAsync()
+        {
+            using var client = new AmazonSecretsManagerClient();
+            var response = await client.GetSecretValueAsync(new GetSecretValueRequest
+            {
+                SecretId = "supernova/setup/discordtoken"
+            });
+
+            if (response.SecretString == null)
+            {
+                Logger.LogError("FATAL: Unable to retrieve discord token!!");
+                return string.Empty;
+            }
+            return response.SecretString;
         }
 
 
