@@ -3,14 +3,14 @@ phases:
     pre_build:
         commands:
             - export DLLVERSION=$(date +1.0.%y%j.%H%M)
-            - echo "BuildInfo" >> buildInfo.txt
-            - echo "BuildId:" $CODEBUILD_BUILD_ID >> buildInfo.txt
-            - echo "Source Version:"$CODEBUILD_SOURCE_VERSION >> buildInfo.txt
-            - echo "DLL Version:"$DLLVERSION >> buildInfo.txt
-            - echo "Image:"$CODEBUILD_BUILD_IMAGE >> buildInfo.txt
-            - echo "Initiator:"$CODEBUILD_INITIATOR >> buildInfo.txt
-            - echo "KMS Key:"$CODEBUILD_KMS_KEY_ID >> buildInfo.txt
-            - echo "BuildId:"$CODEBUILD_BUILD_ID >> buildInfo.txt
+            - echo "<BuildInfo>" >> buildinfo.xml
+            - echo "<CODEBUILD_BUILD_ID>"$CODEBUILD_BUILD_ID"</CODEBUILD_BUILD_ID>" >> buildinfo.xml
+            - echo "<CODEBUILD_SOURCE_VERSION>"$CODEBUILD_SOURCE_VERSION"</CODEBUILD_SOURCE_VERSION>" >> buildinfo.xml
+            - echo "<DLLVERSION>"$DLLVERSION"</DLLVERSION>" >> buildinfo.xml
+            - echo "<CODEBUILD_BUILD_IMAGE>"$CODEBUILD_BUILD_IMAGE"</CODEBUILD_BUILD_IMAGE>" >> buildinfo.xml
+            - echo "<CODEBUILD_INITIATOR>"$CODEBUILD_INITIATOR"</CODEBUILD_INITIATOR>" >> buildinfo.xml
+            - echo "<CODEUBUILD_KMS_KEY_ID>"$CODEUBUILD_KMS_KEY_ID"</CODEUBUILD_KMS_KEY_ID>" >> buildinfo.xml
+            - echo "</BuildInfo>" >> buildinfo.xml
             - sed -i 's#\\#/#g' SuperNova.DiscordBot.sln
             
     build:
@@ -25,5 +25,4 @@ artifacts:
         - "bin/*.dll"
         - "bin/*.json"
         - "serverless.yml"
-    name: SuperNova.DiscordBot-$(date +1.0.%y%j.%H%M)
     discard-paths: yes
