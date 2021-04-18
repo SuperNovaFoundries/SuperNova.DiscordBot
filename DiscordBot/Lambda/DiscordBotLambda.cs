@@ -32,29 +32,25 @@ namespace SuperNova.DiscordBot.Lambda
         [LambdaSerializer(typeof(JsonSerializer))]
         public async Task RunAsync(ILambdaContext context)
         {
-            try
-            {
-                Logger.LogInformation("Disconnecting in case we didn't get a chance to before.");
-                await _connectionService.DisconnectAsync();
-            }
-            catch(Exception ex)
-            {
-                //suppress
-            }
+            Logger.LogInformation("Disconnecting in case we didn't get a chance to before.");
+            await _connectionService.DisconnectAsync();
+            
             try
             {
                 var waitHandle = new AutoResetEvent(false);
                 Logger.LogInformation($"Connecting - Timer set to {TimeToRun} ms.");
                 await _connectionService.InitializeAsync(Client_Ready, await GetTokenAsync(), TimeToRun, waitHandle);
-
                 waitHandle.WaitOne();
                 Logger.LogInformation("Disconnecting - Lambda timout reached.");
-                await _connectionService.DisconnectAsync();
             }
             catch (Exception ex)
             {
                 Logger.LogError($"Unhandled error: {ex.Message}. Stack Trace: {ex.StackTrace}");
                 Logger.LogError($"Discord bot exited unexpectedly!");
+            }
+            finally
+            {
+                await _connectionService.DisconnectAsync();
             }
         }
 

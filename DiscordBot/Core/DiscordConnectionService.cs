@@ -14,6 +14,7 @@ using SuperNova.AWS.Logging;
 using SuperNova.MEF.NetCore;
 using Microsoft.Extensions.Logging;
 using SuperNova.DiscordBot.Contract;
+using SuperNova.Data.GoogleSheets;
 
 namespace SuperNova.DiscordBot.Core
 {
@@ -102,11 +103,36 @@ namespace SuperNova.DiscordBot.Core
         public async Task DisconnectAsync()
         {
             Logger.LogInformation("DisconnectAsync");
-            await RemoveAllCommandsAsync();
-            Client.MessageReceived -= OnMessageReceived;
-            await Client.StopAsync();
-            await Client.LogoutAsync();
-            await Task.Delay(1000);
+            
+            
+            try
+            {
+                await RemoveAllCommandsAsync();
+                Client.MessageReceived -= OnMessageReceived;
+            }
+            catch (Exception ex) {
+
+                Logger.LogWarning("Couldn't unregister events: " + ex.ConcatMessages());
+            }
+
+            try
+            {
+                await Client.StopAsync();
+            }
+            catch (Exception ex) 
+            {
+                Logger.LogWarning("Couldn't stop the client: " + ex.ConcatMessages());
+            }
+
+            try
+            {
+                await Client.LogoutAsync();
+                await Task.Delay(1000);
+            }
+            catch(Exception ex)
+            {
+                Logger.LogWarning("Couldn't disconnect: " + ex.ConcatMessages());
+            }
         }
 
         private void OnTimerElapsed(object sender, ElapsedEventArgs e)
