@@ -3,36 +3,30 @@ using Amazon.Lambda.Serialization.Json;
 using System.Composition;
 using System.Threading.Tasks;
 using System.Threading;
-using SuperNova.DiscordBot.Data.Contract;
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using System;
 using SuperNova.AWS.Logging;
 using SuperNova.MEF.NetCore;
 using Microsoft.Extensions.Logging;
+using SuperNova.DiscordBot.Contract;
 
-namespace SuperNova.DiscordBot.Business.Lambda
+namespace SuperNova.DiscordBot.Lambda
 {
-    public class DiscordBot : LoggingResource
+    public class DiscordBotLambda : LoggingResource
     {
 
         [Import]
         private IConnectionService _connectionService { get; set; } = null;
 
+        /// <summary>
+        /// Time to run in ms
+        /// </summary>
         private int TimeToRun { get; } = 890000;
 
-        public DiscordBot() : base(nameof(DiscordBot))
+        public DiscordBotLambda() : base(nameof(DiscordBotLambda))
         {
-            try
-            {
-                MEFLoader.SatisfyImportsOnce(this);
-            }
-            catch(Exception ex)
-            {
-                throw new Exception("MEF FAILED!!" + ex.Message + ex.StackTrace + ex.InnerException?.Message + ex.InnerException?.StackTrace);
-            }
-            
-
+            MEFLoader.SatisfyImportsOnce(this);
         }
 
         [LambdaSerializer(typeof(JsonSerializer))]
@@ -41,10 +35,11 @@ namespace SuperNova.DiscordBot.Business.Lambda
             try
             {
                 var waitHandle = new AutoResetEvent(false);
-
+                Logger.LogInformation($"Connecting - Timer set to {TimeToRun} ms.");
                 await _connectionService.InitializeAsync(Client_Ready, await GetTokenAsync(), TimeToRun, waitHandle);
-                
+
                 waitHandle.WaitOne();
+                Logger.LogInformation("Disconnecting - Lambda timout reached.");
                 await _connectionService.DisconnectAsync();
             }
             catch (Exception ex)
@@ -54,11 +49,8 @@ namespace SuperNova.DiscordBot.Business.Lambda
             }
         }
 
-        public async Task Client_Ready()
-        {
-            await _connectionService.Client.SetGameAsync("Processing white dwarf evolution");
-        }
-
+        public async Task Client_Ready() => await _connectionService.Client.SetGameAsync("Processing white dwarf evolution");
+        
         public async Task<string> GetTokenAsync()
         {
             using var client = new AmazonSecretsManagerClient();

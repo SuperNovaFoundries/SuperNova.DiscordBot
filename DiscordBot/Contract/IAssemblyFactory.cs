@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace SuperNova.DiscordBot.Common.Contract
+namespace SuperNova.DiscordBot.Contract
 {
     public interface IAssemblyFactory
     {

@@ -3,13 +3,12 @@ using Amazon.SQS;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using SuperNova.AWS.Logging;
-using SuperNova.DiscordBot.Common.Utils;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace SuperNova.DiscordBot.Common.Core.SQS
+namespace SuperNova.DiscordBot.Lambda.SQS
 {
 
     public class CFTLambda

@@ -1,11 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using SuperNova.DiscordBot.Data.Contract;
 using Microsoft.Extensions.DependencyInjection;
-using SuperNova.DiscordBot.Common.Contract;
-using SuperNova.DiscordBot.Common.Utils;
-using SuperNova.DiscordBot.Data.Core;
 using System;
 using System.Composition;
 using System.Linq;
@@ -17,8 +13,9 @@ using Timer = System.Timers.Timer;
 using SuperNova.AWS.Logging;
 using SuperNova.MEF.NetCore;
 using Microsoft.Extensions.Logging;
+using SuperNova.DiscordBot.Contract;
 
-namespace SuperNova.DiscordBot.Business.Core
+namespace SuperNova.DiscordBot.Core
 {
     [Export(typeof(IConnectionService))]
     [Shared]
@@ -43,7 +40,7 @@ namespace SuperNova.DiscordBot.Business.Core
             {
                 LogLevel = LogSeverity.Debug
             });
-            Client.Log += async (message) => await Task.Run(() => Logger.LogInformation($"LOG: {message.ToJsonString()}"));
+            //Client.Log += async (message) => await Task.Run(() => Logger.LogInformation($"LOG: {JsonConvert.SerializeObject(message)}"));
 
             Commands = new CommandService(new CommandServiceConfig
             {
@@ -88,7 +85,7 @@ namespace SuperNova.DiscordBot.Business.Core
         }
         public async Task RemoveAllCommandsAsync()
         {
-            foreach(var command in Commands.Commands.ToList())
+            foreach (var command in Commands.Commands.ToList())
             {
                 try
                 {

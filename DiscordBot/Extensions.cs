@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 
-namespace SuperNova.DiscordBot.Common.Utils
+namespace SuperNova.DiscordBot
 {
     public static class Extensions
     {

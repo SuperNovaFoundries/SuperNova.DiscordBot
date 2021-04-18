@@ -1,13 +1,12 @@
 ﻿using Discord.Commands;
 using Discord;
-using SuperNova.DiscordBot.Data.Core;
 using System.Threading.Tasks;
 using SuperNova.MEF.NetCore;
 using SuperNova.Data.GoogleSheets.Contract;
 using System.Composition;
-using SuperNova.DiscordBot.Common.Utils;
+using SuperNova.DiscordBot.Core;
 
-namespace SuperNova.DiscordBot.Business.Commands
+namespace SuperNova.DiscordBot.Commands
 {
     [DiscordCommand]
     public class RemindCommand : ModuleBase<SocketCommandContext>
@@ -57,7 +56,7 @@ namespace SuperNova.DiscordBot.Business.Commands
         {
             var info = await _sheetsProxy.GetCorpCommodityInfoAsync(commodity);
             await ReplyAsync($"{commodity} CP: {info.CorpPrice}");
-           
+
         }
 
         [Command("corpprice")]
@@ -66,7 +65,7 @@ namespace SuperNova.DiscordBot.Business.Commands
         public async Task CorpPriceAsync(string commodity, int quantity)
         {
             var info = await _sheetsProxy.GetCorpCommodityInfoAsync(commodity);
-            await ReplyAsync($"{quantity}*{commodity} (CP): {info.CorpPrice*quantity}");
+            await ReplyAsync($"{quantity}*{commodity} (CP): {info.CorpPrice * quantity}");
 
         }
 

@@ -5,15 +5,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 using System.Net;
-using SuperNova.DiscordBot.Data.Core;
 using SuperNova.MEF.NetCore;
 using SuperNova.AWS.Logging.Contract;
 using System.Composition;
-using SuperNova.DiscordBot.Common.Utils;
 using Amazon.Translate;
 using Amazon.Translate.Model;
+using SuperNova.DiscordBot.Core;
 
-namespace DiscordBot.Business.Commands
+namespace SuperNova.DiscordBot.Commands
 {
 
 
@@ -90,7 +89,8 @@ namespace DiscordBot.Business.Commands
         [Summary("Translate some text!")]
         public async Task TranslateAsync() => await ReplyAsync(GetHelp());
 
-        public TranslateCommand()  {
+        public TranslateCommand()
+        {
             MEFLoader.SatisfyImportsOnce(this);
             Logger = LogFactory.GetLogger(nameof(TranslateCommand));
         }

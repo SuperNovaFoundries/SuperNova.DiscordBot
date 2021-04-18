@@ -1,8 +1,8 @@
 ﻿using Discord.Commands;
-using SuperNova.DiscordBot.Data.Core;
+using SuperNova.DiscordBot.Core;
 using System.Threading.Tasks;
 
-namespace SuperNova.DiscordBot.Business.Commands
+namespace SuperNova.DiscordBot.Commands
 {
     [DiscordCommand]
     public class PingCommand : ModuleBase<SocketCommandContext>

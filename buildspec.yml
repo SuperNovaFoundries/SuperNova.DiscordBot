@@ -12,7 +12,6 @@ phases:
             - echo "<CODEUBUILD_KMS_KEY_ID>"$CODEUBUILD_KMS_KEY_ID"</CODEUBUILD_KMS_KEY_ID>" >> buildinfo.xml
             - echo "</BUILDINFO>" >> buildinfo.xml
             - sed -i 's#\\#/#g' SuperNova.DiscordBot.sln
-            
     build:
         commands:
             - dotnet restore
