@@ -34,6 +34,15 @@ namespace SuperNova.DiscordBot.Lambda
         {
             try
             {
+                Logger.LogInformation("Disconnecting in case we didn't get a chance to before.");
+                await _connectionService.DisconnectAsync();
+            }
+            catch(Exception ex)
+            {
+                //suppress
+            }
+            try
+            {
                 var waitHandle = new AutoResetEvent(false);
                 Logger.LogInformation($"Connecting - Timer set to {TimeToRun} ms.");
                 await _connectionService.InitializeAsync(Client_Ready, await GetTokenAsync(), TimeToRun, waitHandle);
