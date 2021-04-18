@@ -9,7 +9,7 @@ namespace SuperNova.DiscordBot.Core
     public class DiscordAssemblyFactory : IAssemblyFactory
     {
         private static readonly string[] assemblies = {
-            $"/var/task\\SuperNova.DiscordBot.Business.dll",
+            $"/var/task\\SuperNova.DiscordBot.dll",
         };
 
         //todo - pull assemblies from s3 bucket for pluggability
