@@ -88,22 +88,16 @@ namespace SuperNova.DiscordBot.Business.Core
         }
         public async Task RemoveAllCommandsAsync()
         {
-
-            foreach (var assembly in _assemblyFactory.Assemblies().ToList())
+            foreach(var command in Commands.Commands.ToList())
             {
-                var matches = Assembly.LoadFile(assembly).GetTypes().Where(t => t.GetCustomAttribute<DiscordCommandAttribute>(true) is DiscordCommandAttribute).ToList();
-                foreach (var match in matches)
+                try
                 {
-                    try
-                    {
-                        await Commands.RemoveModuleAsync(match.GetType());
-                    }
-                    catch (Exception ex)
-                    {
-                        //suppress, command may not exist
-                        Logger.LogError(ex.ToJsonString());
-
-                    }
+                    await Commands.RemoveModuleAsync(command.GetType());
+                }
+                catch (Exception ex)
+                {
+                    //suppress, command may not exist
+                    Logger.LogError(ex.ToJsonString());
                 }
             }
         }

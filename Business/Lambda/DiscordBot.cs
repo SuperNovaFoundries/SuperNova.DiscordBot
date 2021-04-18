@@ -19,7 +19,7 @@ namespace SuperNova.DiscordBot.Business.Lambda
         [Import]
         private IConnectionService _connectionService { get; set; } = null;
 
-        private int TimeToRun { get; } = 894000;
+        private int TimeToRun { get; } = 890000;
 
         public DiscordBot() : base(nameof(DiscordBot))
         {
@@ -41,7 +41,7 @@ namespace SuperNova.DiscordBot.Business.Lambda
             try
             {
                 var waitHandle = new AutoResetEvent(false);
-                
+
                 await _connectionService.InitializeAsync(Client_Ready, await GetTokenAsync(), TimeToRun, waitHandle);
                 
                 waitHandle.WaitOne();
