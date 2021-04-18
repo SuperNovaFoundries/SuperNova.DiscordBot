@@ -63,7 +63,7 @@ Resources:
                 S3Bucket: !Ref CodeBucket
                 S3Key: SuperNova.DiscordBot/12j7jz/SuperNova.DiscordBot.zip
             FunctionName: "BotRun"
-            Handler: "SuperNova.DiscordBot.Business::SuperNova.DiscordBot.Lambda.DiscordBotLambda::RunAsync"
+            Handler: "SuperNova.DiscordBot::SuperNova.DiscordBot.Lambda.DiscordBotLambda::RunAsync"
             MemorySize: 128
             Role: !GetAtt LambdaRole.Arn
             Runtime: "dotnetcore3.1"
