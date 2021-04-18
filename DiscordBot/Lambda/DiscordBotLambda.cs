@@ -22,7 +22,7 @@ namespace SuperNova.DiscordBot.Lambda
         /// <summary>
         /// Time to run in ms
         /// </summary>
-        private int TimeToRun { get; } = 890000;
+        private int TimeToRun { get; } = 885000;
 
         public DiscordBotLambda() : base(nameof(DiscordBotLambda))
         {
