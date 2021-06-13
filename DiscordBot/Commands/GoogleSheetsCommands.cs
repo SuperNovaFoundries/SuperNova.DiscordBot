@@ -33,7 +33,7 @@ namespace SuperNova.DiscordBot.Commands
         [Import]
         private IGoogleSheetsProxy _sheetsProxy { get; set; } = null;
         private static Random random = new Random();
-
+        private readonly string _sheetId = "1tyYLfgAqD7Mm1Lv8-fc59RuPdPZ_pa0HYjY7TVI_KKo";
         public VickeryBiddingCommands()
         {
             MEFLoader.SatisfyImportsOnce(this);
@@ -69,8 +69,7 @@ namespace SuperNova.DiscordBot.Commands
             var list = new List<IList<object>>() {
                 new List<object> { bidderRegistration.Name, bidderRegistration.DiscordId, bidderRegistration.RegistrationCode, bidderRegistration.Validated.ToString().ToUpper() }
             };
-            var sheetId = await _sheetsProxy.GetCoordSheetId();
-            var response = await _sheetsProxy.AppendRange(sheetId, "Sheet47!A1", list);
+            var response = await _sheetsProxy.AppendRange(_sheetId, "Sheet47!A1", list);
 
             await ReplyAsync($"Your unique registration code is {bidderRegistration.RegistrationCode}. You must send a message with this code to an SNF Admin in-game. If you have questions, please contact an SNF admin for assistance.");
         }
@@ -128,8 +127,7 @@ namespace SuperNova.DiscordBot.Commands
                 list.Add(new List<object> { reg.Name, reg.DiscordId, reg.RegistrationCode, reg.Validated });
             }
 
-            var sheetId = await _sheetsProxy.GetCoordSheetId();
-            await _sheetsProxy.UpdateRange(sheetId, "A2:D", list);
+            await _sheetsProxy.UpdateRange(_sheetId, "A2:D", list);
 
         }
         private async Task<List<BidderRegistration>> GetAllBidders()
@@ -137,8 +135,7 @@ namespace SuperNova.DiscordBot.Commands
             var list = new List<BidderRegistration>();
             var range = "Sheet76!A2:D";
 
-            var sheetId = await _sheetsProxy.GetCoordSheetId();
-            var results = await _sheetsProxy.GetRange(sheetId, range);
+            var results = await _sheetsProxy.GetRange(_sheetId, range);
 
             if (results?.Values == null) return list;
 
@@ -174,7 +171,7 @@ namespace SuperNova.DiscordBot.Commands
 
         [Import]
         private IGoogleSheetsProxy _sheetsProxy { get; set; } = null;
-
+        private readonly string _sheetId = "1tyYLfgAqD7Mm1Lv8-fc59RuPdPZ_pa0HYjY7TVI_KKo";
         private List<string> _publicChannels = new List<string>
         {
             "introduction",
@@ -229,9 +226,8 @@ namespace SuperNova.DiscordBot.Commands
                 return;
             }
             
-            var sheetId = await _sheetsProxy.GetCoordSheetId();
             
-            var info = await _sheetsProxy.GetCorpCommodityInfoAsync(sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
+            var info = await _sheetsProxy.GetCorpCommodityInfoAsync(_sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
             if (info?.CorpPrice == null)
             {
                 await ReplyAsync($"Couldn't find a corp price for {commodity}...");
@@ -260,8 +256,7 @@ namespace SuperNova.DiscordBot.Commands
                 return;
             }
 
-            var sheetId = await _sheetsProxy.GetCoordSheetId();
-            var info = await _sheetsProxy.GetCorpCommodityInfoAsync(sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
+            var info = await _sheetsProxy.GetCorpCommodityInfoAsync(_sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
             if (info?.CorpPrice == null)
             {
                 await ReplyAsync($"Couldn't find a corp price for {commodity}...");
@@ -295,8 +290,7 @@ namespace SuperNova.DiscordBot.Commands
             if (!roles.Any(r => r.Name == "Member")) return;
 
 
-            var sheetId = await _sheetsProxy.GetCoordSheetId();
-            var info = await _sheetsProxy.GetCorpCommodityInfoAsync(sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
+            var info = await _sheetsProxy.GetCorpCommodityInfoAsync(_sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
             if (info?.CorpPrice == null)
             {
                 await ReplyAsync($"Couldn't find a corp price for {commodity}...");
