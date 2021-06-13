@@ -140,7 +140,9 @@ namespace SuperNova.DiscordBot.Commands
             var sheetId = await _sheetsProxy.GetCoordSheetId();
             var results = await _sheetsProxy.GetRange(sheetId, range);
 
-            foreach (var thing in results.Values)
+            if (results?.Values == null) return list;
+
+            foreach (var thing in results?.Values)
             {
                 list.Add(new BidderRegistration
                 {
