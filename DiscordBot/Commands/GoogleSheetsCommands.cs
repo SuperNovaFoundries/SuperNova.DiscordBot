@@ -105,7 +105,7 @@ namespace SuperNova.DiscordBot.Commands
             {
                 await ReplyAsync("This command is only valid in private messages");
             }
-            if (!roles.Any(r => r.Name == "Admin"))
+            if (!roles.Any(r => r.Name == "Director" || r.Name == "Planetary Lead"))
             {
                 await ReplyAsync("You do not have permission to use this command.");
             }
