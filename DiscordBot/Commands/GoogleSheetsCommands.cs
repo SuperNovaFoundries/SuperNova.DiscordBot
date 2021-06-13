@@ -184,6 +184,7 @@ namespace SuperNova.DiscordBot.Commands
             "applications",
             "role-request",
             "public-bidding",
+            "bot-test"
         };
 
         public GoogleSheetsCommands()
