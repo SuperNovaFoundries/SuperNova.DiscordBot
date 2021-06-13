@@ -33,9 +33,11 @@ namespace SuperNova.DiscordBot.Commands
         [Import]
         private IGoogleSheetsProxy _sheetsProxy { get; set; } = null;
         private static Random random = new Random();
+
         public VickeryBiddingCommands()
         {
             MEFLoader.SatisfyImportsOnce(this);
+            
         }
         [Command("register_corp")]
         [Summary("Register a new account for government contract bidding. register_corp {!register_corp {PrunCorpName}")]
@@ -69,8 +71,8 @@ namespace SuperNova.DiscordBot.Commands
             var list = new List<IList<object>>() {
                 new List<object> { bidderRegistration.Name, bidderRegistration.DiscordId, bidderRegistration.RegistrationCode, bidderRegistration.Validated.ToString().ToUpper() }
             };
-
-            var response = await _sheetsProxy.AppendRange("1tyYLfgAqD7Mm1Lv8-fc59RuPdPZ_pa0HYjY7TVI_KKo", "Sheet47!A1", list);
+            var sheetId = await _sheetsProxy.GetCoordSheetId();
+            var response = await _sheetsProxy.AppendRange(sheetId, "Sheet47!A1", list);
 
             await ReplyAsync($"Your unique registration code is {bidderRegistration.RegistrationCode}. You must provide this to an SNF administrator from within PrUn. If you have questions, please contact an SNF admin for assistance.");
         }
@@ -133,15 +135,18 @@ namespace SuperNova.DiscordBot.Commands
             {
                 list.Add(new List<object> { reg.Name, reg.DiscordId, reg.RegistrationCode, reg.Validated });
             }
-            await _sheetsProxy.UpdateRange("1tyYLfgAqD7Mm1Lv8-fc59RuPdPZ_pa0HYjY7TVI_KKo", "A2:D", list);
+
+            var sheetId = await _sheetsProxy.GetCoordSheetId();
+            await _sheetsProxy.UpdateRange(sheetId, "A2:D", list);
 
         }
         private async Task<List<BidderRegistration>> GetAllBidders()
         {
             var list = new List<BidderRegistration>();
-            var spreadsheetId = "1tyYLfgAqD7Mm1Lv8-fc59RuPdPZ_pa0HYjY7TVI_KKo";
             var range = "Sheet76!A2:D";
-            var results = await _sheetsProxy.GetRange(spreadsheetId, range);
+
+            var sheetId = await _sheetsProxy.GetCoordSheetId();
+            var results = await _sheetsProxy.GetRange(sheetId, range);
 
             foreach (var thing in results.Values)
             {
@@ -231,9 +236,9 @@ namespace SuperNova.DiscordBot.Commands
             }
             var user = Context.Message.Author;
             var roles = ((SocketGuildUser)user).Roles.ToList();
+            var sheetId = await _sheetsProxy.GetCoordSheetId();
             if (!roles.Any(r => r.Name == "Member")) return;
-            var spreadsheetId = "1tyYLfgAqD7Mm1Lv8-fc59RuPdPZ_pa0HYjY7TVI_KKo";
-            var info = await _sheetsProxy.GetCorpCommodityInfoAsync(spreadsheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
+            var info = await _sheetsProxy.GetCorpCommodityInfoAsync(sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
             if (info?.CorpPrice == null)
             {
                 await ReplyAsync($"Couldn't find a corp price for {commodity}...");
@@ -265,8 +270,9 @@ namespace SuperNova.DiscordBot.Commands
             var user = Context.Message.Author;
             var roles = ((SocketGuildUser)user).Roles.ToList();
             if (!roles.Any(r => r.Name == "Member")) return;
-            var spreadsheetId = "1tyYLfgAqD7Mm1Lv8-fc59RuPdPZ_pa0HYjY7TVI_KKo";
-            var info = await _sheetsProxy.GetCorpCommodityInfoAsync(spreadsheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
+
+            var sheetId = await _sheetsProxy.GetCoordSheetId();
+            var info = await _sheetsProxy.GetCorpCommodityInfoAsync(sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
             if (info?.CorpPrice == null)
             {
                 await ReplyAsync($"Couldn't find a corp price for {commodity}...");
@@ -299,8 +305,9 @@ namespace SuperNova.DiscordBot.Commands
             var roles = ((SocketGuildUser)user).Roles.ToList();
             if (!roles.Any(r => r.Name == "Member")) return;
 
-            var spreadsheetId = "1tyYLfgAqD7Mm1Lv8-fc59RuPdPZ_pa0HYjY7TVI_KKo";
-            var info = await _sheetsProxy.GetCorpCommodityInfoAsync(spreadsheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
+
+            var sheetId = await _sheetsProxy.GetCoordSheetId();
+            var info = await _sheetsProxy.GetCorpCommodityInfoAsync(sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
             if (info?.CorpPrice == null)
             {
                 await ReplyAsync($"Couldn't find a corp price for {commodity}...");
