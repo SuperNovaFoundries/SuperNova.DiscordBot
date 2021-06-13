@@ -2,6 +2,8 @@
 using Discord;
 using System.Threading.Tasks;
 using SuperNova.DiscordBot.Core;
+using Discord.WebSocket;
+using System.Linq;
 
 namespace SuperNova.DiscordBot.Commands
 {
@@ -15,6 +17,9 @@ namespace SuperNova.DiscordBot.Commands
         public async Task RemindAsync(string reminder, int time)
         {
             var user = Context.Message.Author;
+            var roles = ((SocketGuildUser)user).Roles.ToList();
+            if (!roles.Any(r => r.Name == "Member")) return;
+
             if (time > 60 || time < 0)
             {
                 await user.SendMessageAsync("Unfortunately, only reminders <= 60 minutes (and greater than 0) are supported currently.");
