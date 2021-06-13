@@ -37,17 +37,16 @@ namespace SuperNova.DiscordBot.Commands
         public VickeryBiddingCommands()
         {
             MEFLoader.SatisfyImportsOnce(this);
-            
         }
+
         [Command("register_corp")]
         [Summary("Register a new account for government contract bidding. register_corp {!register_corp {PrunCorpName}")]
         public async Task RegisterNewBidderAsync(string prunUsername)
         {
             if (!Context.IsPrivate)
             {
-                await ReplyAsync("Nope! You must send me a direct message to register for auction bids.");
+                await ReplyAsync("You must send me a private message to use this command!");
                 return;
-
             }
 
             var discordId = $"{Context.User.Username}#{Context.User.Discriminator}";
@@ -56,10 +55,9 @@ namespace SuperNova.DiscordBot.Commands
             {
                 await ReplyAsync("You already have a registration. If you are having issues, please contact an SNF admin for assitance.");
                 return;
-
             }
 
-            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
             var code = new string(Enumerable.Range(1, 10).Select(_ => chars[random.Next(chars.Length)]).ToArray());
             bidderRegistration = new BidderRegistration
             {
@@ -74,10 +72,10 @@ namespace SuperNova.DiscordBot.Commands
             var sheetId = await _sheetsProxy.GetCoordSheetId();
             var response = await _sheetsProxy.AppendRange(sheetId, "Sheet47!A1", list);
 
-            await ReplyAsync($"Your unique registration code is {bidderRegistration.RegistrationCode}. You must provide this to an SNF administrator from within PrUn. If you have questions, please contact an SNF admin for assistance.");
+            await ReplyAsync($"Your unique registration code is {bidderRegistration.RegistrationCode}. You must send a message with this code to an SNF Admin in-game. If you have questions, please contact an SNF admin for assistance.");
         }
 
-        public async Task<string> PlaceBid(string bidHash)
+        public async Task<string> PlaceBid(string contractId, string bidHash)
         {
             var discordId = $"{Context.User.Username}#{Context.User.Discriminator}";
             var bidderRegistration = await GetRegistrationAsync(discordId);
@@ -98,18 +96,12 @@ namespace SuperNova.DiscordBot.Commands
         [Summary("Validate a registration code received from a user in game. !validate_corp {username} {code}")]
         public async Task ValidateRegistration(string prunUserName, string registrationCode)
         {
-            var user = Context.Message.Author;
-            var roles = ((SocketGuildUser)user).Roles.ToList();
-            if (!roles.Any(r => r.Name == "Member")) return;
-            if (!Context.IsPrivate)
+            if (Context.Channel.Name != "bidding-admin")
             {
-                await ReplyAsync("This command is only valid in private messages");
+                await ReplyAsync("Nope! You must use this command in the #bidding-admin channel.");
+                return;
             }
-            if (!roles.Any(r => r.Name == "Director" || r.Name == "Planetary Lead"))
-            {
-                await ReplyAsync("You do not have permission to use this command.");
-            }
-
+            
             var registration = await GetRegistrationAsync(prunUserName);
             if (registration == null)
             {
@@ -234,10 +226,9 @@ namespace SuperNova.DiscordBot.Commands
             {
                 return;
             }
-            var user = Context.Message.Author;
-            var roles = ((SocketGuildUser)user).Roles.ToList();
+            
             var sheetId = await _sheetsProxy.GetCoordSheetId();
-            if (!roles.Any(r => r.Name == "Member")) return;
+            
             var info = await _sheetsProxy.GetCorpCommodityInfoAsync(sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
             if (info?.CorpPrice == null)
             {
@@ -266,10 +257,6 @@ namespace SuperNova.DiscordBot.Commands
             {
                 return;
             }
-
-            var user = Context.Message.Author;
-            var roles = ((SocketGuildUser)user).Roles.ToList();
-            if (!roles.Any(r => r.Name == "Member")) return;
 
             var sheetId = await _sheetsProxy.GetCoordSheetId();
             var info = await _sheetsProxy.GetCorpCommodityInfoAsync(sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
