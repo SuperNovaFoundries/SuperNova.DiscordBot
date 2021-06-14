@@ -48,6 +48,11 @@ namespace SuperNova.DiscordBot.Commands
                 await Context.User.SendMessageAsync("This command is only valid in the public bidding channel.");
                 return;
             }
+
+            if (Context.IsPrivate)
+            {
+                return;
+            }
             try
             {
                 var discordId = $"{Context.User.Username}#{Context.User.Discriminator}";
@@ -75,15 +80,16 @@ namespace SuperNova.DiscordBot.Commands
                 var response = await _sheetsProxy.AppendRange(_sheetId, "Registrations!A1", list);
                 await Context.User.SendMessageAsync($"Your unique registration code is {bidderRegistration.RegistrationCode}. You must send a message with this code to an SNF Admin in-game. If you have questions, please contact an SNF admin for assistance.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                await ReplyAsync("I fell and broke my hip...");
+                await ReplyAsync("Something just went horribly wrong. " + ex.Message);
                 throw;
             }
         }
 
         public async Task<string> PlaceBid(string contractId, string bidHash)
         {
+
             var discordId = $"{Context.User.Username}#{Context.User.Discriminator}";
             var bidderRegistration = await GetRegistrationAsync(discordId);
             if (bidderRegistration == null)
@@ -107,29 +113,34 @@ namespace SuperNova.DiscordBot.Commands
             {
                 return;
             }
+
+            if (Context.IsPrivate)
+            {
+                return;
+            }
             
             var registration = await GetRegistrationAsync(prunUserName);
             if (registration == null)
             {
                 await ReplyAsync("This user is not registered...");
+                return;
             }
             if (registration.Validated)
             {
                 await ReplyAsync("This user is already validated...");
+                return;
             }
 
             if (registration.RegistrationCode != registrationCode)
             {
                 await ReplyAsync("The registration codes do not match!!!");
+                return;
             }
             try
             {
-
                 registration.Validated = true;
-                await Context.User.SendMessageAsync("User validated!");
                 var registrations = await GetAllBidders();
                 registrations[registrations.FindIndex(r => r.Name == registration.Name)] = registration;
-                await Context.User.SendMessageAsync("Updated user registration - updating sheets...");
                 var list = new List<IList<object>>();
                 foreach (var reg in registrations)
                 {
@@ -137,7 +148,7 @@ namespace SuperNova.DiscordBot.Commands
                 }
 
                 await _sheetsProxy.UpdateRange(_sheetId, "A2:D", list);
-                await Context.User.SendMessageAsync("Good to go!");
+                await Context.User.SendMessageAsync("User was validated successfully.");
             }
             catch (Exception ex)
             {
@@ -225,9 +236,29 @@ namespace SuperNova.DiscordBot.Commands
         [Command("corpprice")]
         [Alias("cp")]
         [Summary("Get corporate price for a given commodity. '3 BDE' 'BDE 3' 'BDE' '3 BDE 2400.34' and 'BDE 3 2400.34' are all valid.")]
-        public async Task CorpPriceAsync(string commodity, int quantity, decimal overridePrice)
+        public async Task CorpPriceAsync(string commodity, int quantity, decimal totalPrice)
         {
-            await CorpPriceAsync(quantity, commodity, overridePrice);
+            var channel = Context.Channel;
+            if (_publicChannels.Contains(channel.Name))
+            {
+                return;
+            }
+
+            var info = await _sheetsProxy.GetCorpCommodityInfoAsync(_sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
+            if (info?.CorpPrice == null)
+            {
+                await ReplyAsync($"Couldn't find a corp price for {commodity}...");
+            }
+            else
+            {
+                var totalCorpPrice = quantity * info.CorpPrice;
+                var difference = totalCorpPrice - totalCorpPrice;
+                var reply = difference < 0
+                    ? $"{quantity} {commodity} at {totalPrice} is {-difference} less than the CorpPrice of {totalCorpPrice}"
+                    : $"{quantity} {commodity} at {totalPrice} is {difference} more than the CorpPrice of {totalCorpPrice}";
+
+                await ReplyAsync(reply);
+            }
         }
 
         [Command("corpprice")]

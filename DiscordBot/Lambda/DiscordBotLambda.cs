@@ -54,7 +54,7 @@ namespace SuperNova.DiscordBot.Lambda
             }
         }
 
-        public async Task Client_Ready() => await _connectionService.Client.SetGameAsync("Processing white dwarf evolution");
+        public async Task Client_Ready() => await _connectionService.Client.SetGameAsync("Chasing electrons");
         
         public async Task<string> GetTokenAsync()
         {
