@@ -25,7 +25,7 @@
     <PackageReference Include="AWSSDK.Translate" Version="3.7.0.12" />
     <PackageReference Include="Discord.Net" Version="2.4.0" />
     <PackageReference Include="SuperNova.AWS.Logging" Version="1.0.21107.1848" />
-    <PackageReference Include="SuperNova.Data.GoogleSheets" Version="1.0.21164.2059" />
+    <PackageReference Include="SuperNova.Data.GoogleSheets" Version="1.0.21165.311" />
   </ItemGroup>
 
 </Project>

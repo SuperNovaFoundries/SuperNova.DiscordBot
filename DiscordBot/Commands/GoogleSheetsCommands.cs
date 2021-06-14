@@ -33,7 +33,7 @@ namespace SuperNova.DiscordBot.Commands
         [Import]
         private IGoogleSheetsProxy _sheetsProxy { get; set; } = null;
         private static Random random = new Random();
-        private readonly string _sheetId = "1tyYLfgAqD7Mm1Lv8-fc59RuPdPZ_pa0HYjY7TVI_KKo";
+        private readonly string _sheetId = "1xtV9MTohgWfm3oN7kmms0Fa4Lw_Wg8358qrPXWvA3nM";
         public VickeryBiddingCommands()
         {
             MEFLoader.SatisfyImportsOnce(this);
@@ -48,30 +48,39 @@ namespace SuperNova.DiscordBot.Commands
                 await ReplyAsync("You must send me a private message to use this command!");
                 return;
             }
-
-            var discordId = $"{Context.User.Username}#{Context.User.Discriminator}";
-            var bidderRegistration = await GetRegistrationAsync(prunUsername);
-            if (bidderRegistration != null)
+            try
             {
-                await ReplyAsync("You already have a registration. If you are having issues, please contact an SNF admin for assitance.");
-                return;
+                var discordId = $"{Context.User.Username}#{Context.User.Discriminator}";
+                var bidderRegistration = await GetRegistrationAsync(prunUsername);
+                if (bidderRegistration != null)
+                {
+                    await ReplyAsync("You already have a registration. If you are having issues, please contact an SNF admin for assitance.");
+                    return;
+                }
+
+                var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+                var code = new string(Enumerable.Range(1, 10).Select(_ => chars[random.Next(chars.Length)]).ToArray());
+                bidderRegistration = new BidderRegistration
+                {
+                    DiscordId = discordId,
+                    Name = prunUsername,
+                    RegistrationCode = code,
+                    Validated = false
+                };
+                var list = new List<IList<object>>() {
+                    new List<object> { 
+                        bidderRegistration.Name, bidderRegistration.DiscordId, bidderRegistration.RegistrationCode, bidderRegistration.Validated.ToString().ToUpper() 
+                    }
+                };
+                var response = await _sheetsProxy.AppendRange(_sheetId, "Registrations!A1", list);
+
+                await ReplyAsync($"Your unique registration code is {bidderRegistration.RegistrationCode}. You must send a message with this code to an SNF Admin in-game. If you have questions, please contact an SNF admin for assistance.");
             }
-
-            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            var code = new string(Enumerable.Range(1, 10).Select(_ => chars[random.Next(chars.Length)]).ToArray());
-            bidderRegistration = new BidderRegistration
+            catch (Exception)
             {
-                DiscordId = discordId,
-                Name = prunUsername,
-                RegistrationCode = code,
-                Validated = false
-            };
-            var list = new List<IList<object>>() {
-                new List<object> { bidderRegistration.Name, bidderRegistration.DiscordId, bidderRegistration.RegistrationCode, bidderRegistration.Validated.ToString().ToUpper() }
-            };
-            var response = await _sheetsProxy.AppendRange(_sheetId, "Sheet47!A1", list);
-
-            await ReplyAsync($"Your unique registration code is {bidderRegistration.RegistrationCode}. You must send a message with this code to an SNF Admin in-game. If you have questions, please contact an SNF admin for assistance.");
+                await ReplyAsync("An error occurred... Contact an SNF admin for assistance.");
+                throw;
+            }
         }
 
         public async Task<string> PlaceBid(string contractId, string bidHash)
@@ -133,7 +142,7 @@ namespace SuperNova.DiscordBot.Commands
         private async Task<List<BidderRegistration>> GetAllBidders()
         {
             var list = new List<BidderRegistration>();
-            var range = "Sheet76!A2:D";
+            var range = "Registrations!A2:D";
 
             var results = await _sheetsProxy.GetRange(_sheetId, range);
 
