@@ -46,7 +46,7 @@ Resources:
                     - Effect: "Allow"
                       Action: "comprehend:*"
                       Resource: "*"     
-					- Effect: "Allow"
+                    - Effect: "Allow"
                       Action: "s3:*"
                       Resource: "*"    
                     - Effect: "Allow"
