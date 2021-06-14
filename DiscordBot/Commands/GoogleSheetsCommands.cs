@@ -89,6 +89,19 @@ namespace SuperNova.DiscordBot.Commands
             }
         }
 
+        [Command("debug_multitest")]
+        [Summary("Validate a registration code received from a user in game. !validate_corp {username} {code}")]
+        public async Task MultiLineTest(string param1, string longText)
+        {
+            await ReplyAsync($"Parameter one was {param1}");
+            await ReplyAsync($"Long text was " + longText);
+        }
+
+
+
+
+
+
         public async Task<string> PlaceBid(string contractId, string bidHash)
         {
 
