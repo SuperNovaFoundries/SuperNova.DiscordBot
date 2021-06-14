@@ -103,7 +103,7 @@ namespace SuperNova.DiscordBot.Commands
         [Summary("Validate a registration code received from a user in game. !validate_corp {username} {code}")]
         public async Task ValidateRegistration(string prunUserName, string registrationCode)
         {
-            if (Context.Channel.Name != "bidding-admin")
+            if (Context.Channel.Name != "billing-admin")
             {
                 return;
             }
@@ -122,20 +122,28 @@ namespace SuperNova.DiscordBot.Commands
             {
                 await ReplyAsync("The registration codes do not match!!!");
             }
-
-            registration.Validated = true;
-
-            var registrations = await GetAllBidders();
-            registrations[registrations.FindIndex(r => r.Name == registration.Name)] = registration;
-
-            var list = new List<IList<object>>();
-            foreach (var reg in registrations)
+            try
             {
-                list.Add(new List<object> { reg.Name, reg.DiscordId, reg.RegistrationCode, reg.Validated });
+
+                registration.Validated = true;
+                await Context.User.SendMessageAsync("User validated!");
+                var registrations = await GetAllBidders();
+                registrations[registrations.FindIndex(r => r.Name == registration.Name)] = registration;
+                await Context.User.SendMessageAsync("Updated user registration - updating sheets...");
+                var list = new List<IList<object>>();
+                foreach (var reg in registrations)
+                {
+                    list.Add(new List<object> { reg.Name, reg.DiscordId, reg.RegistrationCode, reg.Validated });
+                }
+
+                await _sheetsProxy.UpdateRange(_sheetId, "A2:D", list);
+                await Context.User.SendMessageAsync("Good to go!");
             }
-
-            await _sheetsProxy.UpdateRange(_sheetId, "A2:D", list);
-
+            catch (Exception ex)
+            {
+                await Context.User.SendMessageAsync(ex.Message);
+                throw;
+            }
         }
         private async Task<List<BidderRegistration>> GetAllBidders()
         {
