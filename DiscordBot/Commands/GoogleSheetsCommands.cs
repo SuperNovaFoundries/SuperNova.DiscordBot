@@ -254,7 +254,7 @@ namespace SuperNova.DiscordBot.Commands
             else
             {
                 var totalCorpPrice = quantity * info.CorpPrice;
-                var difference = totalCorpPrice - totalCorpPrice;
+                var difference = totalPrice - totalCorpPrice;
                 var reply = difference < 0
                     ? $"{quantity} {commodity} at {totalPrice} is {-difference} less than the CorpPrice of {totalCorpPrice}"
                     : $"{quantity} {commodity} at {totalPrice} is {difference} more than the CorpPrice of {totalCorpPrice}";
