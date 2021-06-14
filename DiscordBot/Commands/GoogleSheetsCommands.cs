@@ -43,9 +43,9 @@ namespace SuperNova.DiscordBot.Commands
         [Summary("Register a new account for government contract bidding. register_corp {!register_corp {PrunCorpName}")]
         public async Task RegisterNewBidderAsync(string prunUsername)
         {
-            if (!Context.IsPrivate)
+            if(Context.Channel.Name != "public-bidding")
             {
-                await ReplyAsync("You must send me a private message to use this command!");
+                await Context.User.SendMessageAsync("This command is only valid in the public bidding channel.");
                 return;
             }
             try
@@ -54,7 +54,7 @@ namespace SuperNova.DiscordBot.Commands
                 var bidderRegistration = await GetRegistrationAsync(prunUsername);
                 if (bidderRegistration != null)
                 {
-                    await ReplyAsync("You already have a registration. If you are having issues, please contact an SNF admin for assitance.");
+                    await Context.User.SendMessageAsync("You already have a registration. If you are having issues, please contact an SNF admin for assitance.");
                     return;
                 }
 
@@ -73,12 +73,11 @@ namespace SuperNova.DiscordBot.Commands
                     }
                 };
                 var response = await _sheetsProxy.AppendRange(_sheetId, "Registrations!A1", list);
-
-                await ReplyAsync($"Your unique registration code is {bidderRegistration.RegistrationCode}. You must send a message with this code to an SNF Admin in-game. If you have questions, please contact an SNF admin for assistance.");
+                await Context.User.SendMessageAsync($"Your unique registration code is {bidderRegistration.RegistrationCode}. You must send a message with this code to an SNF Admin in-game. If you have questions, please contact an SNF admin for assistance.");
             }
             catch (Exception)
             {
-                await ReplyAsync("An error occurred... Contact an SNF admin for assistance.");
+                await ReplyAsync("I fell and broke my hip...");
                 throw;
             }
         }
@@ -104,9 +103,8 @@ namespace SuperNova.DiscordBot.Commands
         [Summary("Validate a registration code received from a user in game. !validate_corp {username} {code}")]
         public async Task ValidateRegistration(string prunUserName, string registrationCode)
         {
-            if (Context.Channel.Name != "bidding-admin")
+            if (Context.Channel.Name != "billing-admin")
             {
-                await ReplyAsync("Nope! You must use this command in the #bidding-admin channel.");
                 return;
             }
             
@@ -180,7 +178,7 @@ namespace SuperNova.DiscordBot.Commands
 
         [Import]
         private IGoogleSheetsProxy _sheetsProxy { get; set; } = null;
-        private readonly string _sheetId = "1tyYLfgAqD7Mm1Lv8-fc59RuPdPZ_pa0HYjY7TVI_KKo";
+        private readonly string _sheetId = "1ENpnE964UInUGfjzt8ShAbKtqNF8byDGfT01vZHlNAk";
         private List<string> _publicChannels = new List<string>
         {
             "introduction",
@@ -246,7 +244,7 @@ namespace SuperNova.DiscordBot.Commands
                 var theoretical = quantity * info.CorpPrice;
                 var actual = quantity * overridePrice;
                 var difference = actual - theoretical;
-                await ReplyAsync($"{quantity} {commodity} = {actual} ({Math.Abs((decimal)difference)} {(difference < 0 ? "under" : "over")} corp price.");
+                await ReplyAsync($"{quantity} {commodity} = {actual} ({Math.Abs((decimal)difference)} {(difference < 0 ? "under" : "over")} corp price.)");
             }
         }
 
@@ -294,11 +292,7 @@ namespace SuperNova.DiscordBot.Commands
             {
                 return;
             }
-            var user = Context.Message.Author;
-            var roles = ((SocketGuildUser)user).Roles.ToList();
-            if (!roles.Any(r => r.Name == "Member")) return;
-
-
+            
             var info = await _sheetsProxy.GetCorpCommodityInfoAsync(_sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
             if (info?.CorpPrice == null)
             {
