@@ -1,4 +1,4 @@
-﻿using Discord.Commands;
+using Discord.Commands;
 using System.Threading.Tasks;
 using SuperNova.MEF.NetCore;
 using SuperNova.Data.GoogleSheets.Contract;
@@ -32,6 +32,8 @@ namespace SuperNova.DiscordBot.Commands
     {
         [Import]
         private IGoogleSheetsProxy _sheetsProxy { get; set; } = null;
+
+        
         private static Random random = new Random();
         private readonly string _sheetId = "1xtV9MTohgWfm3oN7kmms0Fa4Lw_Wg8358qrPXWvA3nM";
         public VickeryBiddingCommands()
@@ -48,7 +50,7 @@ namespace SuperNova.DiscordBot.Commands
                 await Context.User.SendMessageAsync("This command is only valid in the public bidding channel.");
                 return;
             }
-
+            
             if (Context.IsPrivate)
             {
                 return;
@@ -56,7 +58,7 @@ namespace SuperNova.DiscordBot.Commands
             try
             {
                 var discordId = $"{Context.User.Username}#{Context.User.Discriminator}";
-                var bidderRegistration = await GetRegistrationAsync(prunUsername);
+                var bidderRegistration = await GetRegistrationAsync(prunUsername, discordId);
                 if (bidderRegistration != null)
                 {
                     await Context.User.SendMessageAsync("You already have a registration. If you are having issues, please contact an SNF admin for assitance.");
@@ -91,7 +93,7 @@ namespace SuperNova.DiscordBot.Commands
         {
 
             var discordId = $"{Context.User.Username}#{Context.User.Discriminator}";
-            var bidderRegistration = await GetRegistrationAsync(discordId);
+            var bidderRegistration = await GetRegistrationAsync(string.Empty, discordId);
             if (bidderRegistration == null)
             {
                 return "You are not registered to place a bid. Register for bidding or contact an SNF admin for assistance.";
@@ -119,7 +121,7 @@ namespace SuperNova.DiscordBot.Commands
                 return;
             }
             
-            var registration = await GetRegistrationAsync(prunUserName);
+            var registration = await GetRegistrationAsync(prunUserName, string.Empty);
             if (registration == null)
             {
                 await ReplyAsync("This user is not registered...");
@@ -178,10 +180,10 @@ namespace SuperNova.DiscordBot.Commands
             return list;
         }
 
-        private async Task<BidderRegistration> GetRegistrationAsync(string prunUserName)
+        private async Task<BidderRegistration> GetRegistrationAsync(string prunUserName, string discordId)
         {
             var bidders = await GetAllBidders();
-            var match = bidders.FirstOrDefault(b => b.Name == prunUserName);
+            var match = bidders.FirstOrDefault(b => b.Name == prunUserName || b.DiscordId == discordId);
             return match;
         }
 
