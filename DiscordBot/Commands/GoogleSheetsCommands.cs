@@ -103,7 +103,7 @@ namespace SuperNova.DiscordBot.Commands
         [Summary("Validate a registration code received from a user in game. !validate_corp {username} {code}")]
         public async Task ValidateRegistration(string prunUserName, string registrationCode)
         {
-            if (Context.Channel.Name != "billing-admin")
+            if (Context.Channel.Name != "bidding-admin")
             {
                 return;
             }
