@@ -384,8 +384,8 @@ namespace SuperNova.DiscordBot.Commands
         {
             if(_members.Count == 0)
             {
-                var values = await _sheetsProxy.GetRange(_sheetId, "Corp-Members!A2:C");
-                _members = values?.Values?.Select(m => m[2].ToString()).ToList();
+                var values = await _sheetsProxy.GetRange("1tyYLfgAqD7Mm1Lv8-fc59RuPdPZ_pa0HYjY7TVI_KKo", "Corp-Members!C2:C");
+                _members = values?.Values?.Select(m => m[0].ToString()).ToList();
             }
             return _members.Contains(discordId);
         }
