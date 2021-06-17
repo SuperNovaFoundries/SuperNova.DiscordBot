@@ -218,12 +218,13 @@ namespace SuperNova.DiscordBot.Commands
             "applications",
             "role-request",
             "public-bidding",
-            "bot-test"
         };
+        private List<string> _members = new List<string>();
 
         public GoogleSheetsCommands()
         {
             MEFLoader.SatisfyImportsOnce(this);
+
         }
 
         #region Corp Price !cp
@@ -251,10 +252,20 @@ namespace SuperNova.DiscordBot.Commands
         public async Task CorpPriceAsync(string commodity, int quantity, decimal totalPrice)
         {
             var channel = Context.Channel;
+
             if (_publicChannels.Contains(channel.Name))
             {
                 return;
             }
+
+            if (Context.IsPrivate)
+            {
+                var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
+                if (!authorized) return;
+            }
+            
+
+
 
             var info = await _sheetsProxy.GetCorpCommodityInfoAsync(_sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
             if (info?.CorpPrice == null)
@@ -283,8 +294,12 @@ namespace SuperNova.DiscordBot.Commands
             {
                 return;
             }
-            
-            
+            if (Context.IsPrivate)
+            {
+                var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
+                if (!authorized) return;
+            }
+
             var info = await _sheetsProxy.GetCorpCommodityInfoAsync(_sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
             if (info?.CorpPrice == null)
             {
@@ -312,6 +327,11 @@ namespace SuperNova.DiscordBot.Commands
             if (_publicChannels.Contains(channel.Name))
             {
                 return;
+            }
+            if (Context.IsPrivate)
+            {
+                var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
+                if (!authorized) return;
             }
 
             var info = await _sheetsProxy.GetCorpCommodityInfoAsync(_sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
@@ -343,7 +363,12 @@ namespace SuperNova.DiscordBot.Commands
             {
                 return;
             }
-            
+            if (Context.IsPrivate)
+            {
+                var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
+                if (!authorized) return;
+            }
+
             var info = await _sheetsProxy.GetCorpCommodityInfoAsync(_sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
             if (info?.CorpPrice == null)
             {
@@ -355,6 +380,15 @@ namespace SuperNova.DiscordBot.Commands
             }
         }
 
+        private async Task<bool> IsMember(string discordId)
+        {
+            if(_members.Count == 0)
+            {
+                var values = await _sheetsProxy.GetRange(_sheetId, "Corp-Members!A2:C");
+                _members = values?.Values?.Select(m => m[2].ToString()).ToList();
+            }
+            return _members.Contains(discordId);
+        }
 
     }
 }
