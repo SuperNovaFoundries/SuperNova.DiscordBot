@@ -45,13 +45,8 @@ namespace SuperNova.DiscordBot.Commands
         [Summary("Register a new account for government contract bidding. register_corp {!register_corp {PrunCorpName}")]
         public async Task RegisterNewBidderAsync(string prunUsername)
         {
-            if(Context.Channel.Name != "public-bidding")
-            {
-                await Context.User.SendMessageAsync("This command is only valid in the public bidding channel.");
-                return;
-            }
-            
-            if (Context.IsPrivate)
+                       
+            if (!Context.IsPrivate)
             {
                 return;
             }
@@ -79,13 +74,19 @@ namespace SuperNova.DiscordBot.Commands
                         bidderRegistration.Name, bidderRegistration.DiscordId, bidderRegistration.RegistrationCode, bidderRegistration.Validated.ToString().ToUpper() 
                     }
                 };
+                
+
                 var response = await _sheetsProxy.AppendRange(_sheetId, "Registrations!A1", list);
                 await Context.User.SendMessageAsync($"Your unique registration code is {bidderRegistration.RegistrationCode}. You must send a message with this code to an SNF Admin in-game. If you have questions, please contact an SNF admin for assistance.");
+
+                var client = new DiscordSocketClient();
+                var channel = client.GetChannel(853788435113312277) as IMessageChannel;
+                await channel.SendMessageAsync($"{prunUsername} just requested a registration code with discord username {discordId}");
             }
             catch (Exception ex)
             {
-                await ReplyAsync("Something just went horribly wrong. " + ex.Message);
-                throw;
+                await ReplyAsync("I fell and broke my hip..");
+                throw ex;
             }
         }
 
@@ -96,10 +97,6 @@ namespace SuperNova.DiscordBot.Commands
             await ReplyAsync($"Parameter one was {param1}");
             await ReplyAsync($"Long text was " + longText);
         }
-
-
-
-
 
 
         public async Task<string> PlaceBid(string contractId, string bidHash)
@@ -196,7 +193,7 @@ namespace SuperNova.DiscordBot.Commands
         private async Task<BidderRegistration> GetRegistrationAsync(string prunUserName, string discordId)
         {
             var bidders = await GetAllBidders();
-            var match = bidders.FirstOrDefault(b => b.Name == prunUserName || b.DiscordId == discordId);
+            var match = bidders.FirstOrDefault(b => b.Name.ToLower() == prunUserName.ToLower() || b.DiscordId == discordId);
             return match;
         }
 
