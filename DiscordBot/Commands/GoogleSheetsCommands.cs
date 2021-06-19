@@ -217,8 +217,8 @@ namespace SuperNova.DiscordBot.Commands
                     return;
                 }
 
-                var bid = await GetContractBidAsync(contractId, registration.Name);
-                if (bid == null)
+                var thisBid = await GetContractBidAsync(contractId, registration.Name);
+                if (thisBid == null)
                 {
                     await ReplyAsync($"You don't currently have a bit for {contractId}. Check the name or contact an admin for assistance.");
                     return;
@@ -236,25 +236,35 @@ namespace SuperNova.DiscordBot.Commands
                 
                 using var client = new DiscordSocketClient();
                 var c = client.GetChannel(853788435113312277);
-                if (bid.BidderHash == builder.ToString())
+                if (thisBid.BidderHash == builder.ToString())
                 {
-                    await ReplyAsync("Your bid was verified successfully. TODO");
-                    bid.PlainText = plainText;
-                    bid.Verified = true;
+                    await ReplyAsync("Your bid was verified successfully.");
+                    thisBid.PlainText = plainText;
+                    thisBid.Verified = true;
                     if (c is IMessageChannel channel)
                     {
-                        await channel.SendMessageAsync($"{bid.BidderName} just verified their bid!");
+                        await channel.SendMessageAsync($"{thisBid.BidderName} just verified their bid!");
                     }
                 }
                 else
                 {
-                    await ReplyAsync("Nope - they don't match. TODO");
-                    bid.Verified = false;
+                    await ReplyAsync("Your plain-text did not pass verification.");
                     if (c is IMessageChannel channel)
                     {
-                        await channel.SendMessageAsync($"{bid.BidderName} just tried to verify their bid, but it failed.");
+                        await channel.SendMessageAsync($"{thisBid.BidderName} just tried to verify their bid, but it failed.");
                     }
                 }
+                
+                var bids = await GetAllBids(contractId);
+                bids[bids.FindIndex(r => r.BidderName == registration.Name)] = thisBid;
+                var list = new List<IList<object>>();
+                foreach (var bid in bids)
+                {
+                    list.Add(new List<object> { bid.PostedAt, bid.BidderName, bid.BidderHash, bid.Verified, bid.PlainText });
+                }
+                var bidSheetId = "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E";
+                await _sheetsProxy.UpdateRange(bidSheetId, "A7:E", list);
+
             }
             catch (Exception ex)
             {
