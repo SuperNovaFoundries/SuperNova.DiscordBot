@@ -123,7 +123,11 @@ namespace SuperNova.DiscordBot.Commands
                 }
 
                 allBids.Remove(bid);
-                var list = new List<IList<object>>(allBids.Select(bid => new List<object> { bid.PostedAt, bid.BidderName, bid.BidderHash, bid.Verified, bid.PlainText }));
+                var list = new List<IList<object>>(allBids.Select(bid => new List<object> { bid.PostedAt, bid.BidderName, bid.BidderHash, bid.Verified, bid.PlainText }))
+                {
+                    new List<object> { "", "", "", "", "" }
+                };
+
                 var bidSheetId = "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E";
 
                 await _sheetsProxy.UpdateRange(bidSheetId, "A7:E", list);
