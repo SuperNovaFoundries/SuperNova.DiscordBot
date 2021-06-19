@@ -134,20 +134,12 @@ namespace SuperNova.DiscordBot.Commands
                 var bidderRegistration = await GetRegistrationAsync(string.Empty, discordId);
                 if (bidderRegistration == null)
                 {
-                    await ReplyAsync("You are not registered to place a bid. Register for bidding or contact an SNF admin for assistance.");
+                    await ReplyAsync("You are not registered to place a bid. Register for bidding or contact an admin for assistance.");
                     return;
                 }
                 if (!bidderRegistration.Validated)
                 {
-                    await ReplyAsync("You are not yet validated to place a bid. Complete your registration or contact an SNF admin for assistance.");
-                    return;
-                }
-
-                var currentBid = await GetContractBidAsync(contractId, bidderRegistration.Name);
-                if (currentBid != null)
-                {
-                    //todo - allow deletion of bid
-                    await ReplyAsync("You have already placed a bid for this contract. If you need to replace it, contact an administrator for assistance.");
+                    await ReplyAsync("You are not registered to place a bid. Complete your registration or contact an admin for assistance.");
                     return;
                 }
 
@@ -201,6 +193,19 @@ namespace SuperNova.DiscordBot.Commands
             await ReplyAsync($"Your hash is {builder}.");
         }
 
+        private string getHash(string text)
+        {
+            using SHA256 sha256Hash = SHA256.Create();
+            var bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(text));
+            var builder = new StringBuilder();
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                builder.Append(bytes[i].ToString("x2"));
+            }
+            return builder.ToString();
+        }
+
+
         [Command("verify_bid")]
         [Summary("Verify a bid based on your plain-text")]
         public async Task VerifyBid(string contractId, [Remainder]string plainText)
@@ -213,56 +218,37 @@ namespace SuperNova.DiscordBot.Commands
                 var registration = await GetRegistrationAsync(string.Empty, discordId);
                 if (registration == null)
                 {
-                    await ReplyAsync("You are not registered to place bids... Contact an admin for assistance.");
+                    await ReplyAsync("You are not registered to place a bid. Register for bidding or contact an admin for assistance.");
                     return;
                 }
 
-                var thisBid = await GetContractBidAsync(contractId, registration.Name);
-                if (thisBid == null)
-                {
-                    await ReplyAsync($"You don't currently have a bit for {contractId}. Check the name or contact an admin for assistance.");
-                    return;
-                }
-                //get bid from sheets
-
-                using SHA256 sha256Hash = SHA256.Create();
-                var bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(plainText));
-                var builder = new StringBuilder();
-                for (int i = 0; i < bytes.Length; i++)
-                {
-                    builder.Append(bytes[i].ToString("x2"));
-                }
-                
-                
-                using var client = new DiscordSocketClient();
-                var c = client.GetChannel(853788435113312277);
-                if (thisBid.BidderHash == builder.ToString())
-                {
-                    await ReplyAsync("Your bid was verified successfully.");
-                    thisBid.PlainText = plainText;
-                    thisBid.Verified = true;
-                    if (c is IMessageChannel channel)
-                    {
-                        await channel.SendMessageAsync($"{thisBid.BidderName} just verified their bid!");
-                    }
-                }
-                else
-                {
-                    await ReplyAsync("Your plain-text did not pass verification.");
-                    if (c is IMessageChannel channel)
-                    {
-                        await channel.SendMessageAsync($"{thisBid.BidderName} just tried to verify their bid, but it failed.");
-                    }
-                }
-                
                 var bids = await GetAllBids(contractId);
-                bids[bids.FindIndex(r => r.BidderName == registration.Name)] = thisBid;
-                var list = new List<IList<object>>();
-                foreach (var bid in bids)
+                var userBids = bids.Where(b => b.BidderName == registration.Name).ToList();
+                if(userBids.Count == 0)
                 {
-                    list.Add(new List<object> { bid.PostedAt, bid.BidderName, bid.BidderHash, bid.Verified, bid.PlainText });
+                    await ReplyAsync("You do not have any bids to verify.");
                 }
+
+                using var client = new DiscordSocketClient();
+                foreach (var bid in userBids)
+                {
+                    if (bid.BidderHash == getHash(plainText))
+                    {
+                        await ReplyAsync("Your bid was verified successfully.");
+                        bid.PlainText = plainText;
+                        bid.Verified = true;
+                        try
+                        {
+                            await (client.GetChannel(853788435113312277) as IMessageChannel).SendMessageAsync($"{bid.BidderName} just verified a bid.");
+                        }
+                        catch (Exception) { }
+                        bids[bids.FindIndex(r => r.BidderHash == bid.BidderHash)] = bid;
+                    }
+                }
+                
+                var list = new List<IList<object>>(bids.Select(bid => new List<object> { bid.PostedAt, bid.BidderName, bid.BidderHash, bid.Verified, bid.PlainText }));
                 var bidSheetId = "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E";
+                
                 await _sheetsProxy.UpdateRange(bidSheetId, "A7:E", list);
 
             }
@@ -369,12 +355,6 @@ namespace SuperNova.DiscordBot.Commands
                 });
             }
             return list;
-        }
-
-        private async Task<ContractBid> GetContractBidAsync(string contractId, string userName)
-        {
-            var bids = await GetAllBids(contractId);
-            return bids.FirstOrDefault(b => b.BidderName.ToLower() == userName.ToLower());
         }
 
         private async Task<BidderRegistration> GetRegistrationAsync(string prunUserName, string discordId)
