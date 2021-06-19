@@ -111,7 +111,18 @@ namespace SuperNova.DiscordBot.Commands
                 }
 
                 var cutoffTimes = await GetCutoffTimesAsync(contractId);
+                
+                if (cutoffTimes.VerifyCutoff == null || cutoffTimes.BidCutoff == null)
+                {
+                    await ReplyAsync("This contract has not yet been open for bidding.");
+                    return;
+                }
 
+                if (DateTime.UtcNow > cutoffTimes.BidCutoff)
+                {
+                    await ReplyAsync($"You can no longer cancel this bid. The bidding phase for this contract closed on {((DateTime)cutoffTimes.BidCutoff).ToLongDateString()} at {((DateTime)cutoffTimes.BidCutoff).ToLongTimeString()} UTC.");
+                    return;
+                }
 
 
                 var allBids = await GetAllBidsAsync(contractId);
@@ -131,6 +142,8 @@ namespace SuperNova.DiscordBot.Commands
                 var bidSheetId = "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E";
 
                 await _sheetsProxy.UpdateRange(bidSheetId, "A7:E", list);
+
+                await ReplyAsync("Your bid was successfully cancelled.");
             }
             catch (Exception ex)
             {
@@ -265,7 +278,7 @@ namespace SuperNova.DiscordBot.Commands
 
                 if (DateTime.UtcNow > cutoffs.BidCutoff)
                 {
-                    await ReplyAsync($"The bidding phase for this contract closed on {((DateTime)cutoffs.BidCutoff).ToLongDateString()}.");
+                    await ReplyAsync($"The bidding phase for this contract closed on {((DateTime)cutoffs.BidCutoff).ToLongDateString()} at {((DateTime)cutoffs.BidCutoff).ToLongTimeString()} UTC.");
                     return;
 
                 }
