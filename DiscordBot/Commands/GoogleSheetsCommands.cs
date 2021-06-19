@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using Discord;
 using SuperNova.AWS.Logging;
 using Microsoft.Extensions.Logging;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace SuperNova.DiscordBot.Commands
 {
@@ -22,7 +24,15 @@ namespace SuperNova.DiscordBot.Commands
         public string RegistrationCode { get; set; }
         public bool Validated { get; set; }
     }
+    public class ContractBid
+    {
+        public string PostedAt { get; set; }
+        public string BidderName { get; set; }
+        public string BidderHash { get; set; }
+        public bool Verified { get; set; }
+        public string PlainText { get; set; }
 
+    }
     public class BidderAction
     {
         public string DiscordId { get; set; }
@@ -115,6 +125,7 @@ namespace SuperNova.DiscordBot.Commands
         [Summary("Place a bid for an infrastructure contract. !bid {contractId} {hash}")]
         public async Task BidCommand(string contractId, string bidHash)
         {
+            if (!Context.IsPrivate) return;
 
             var discordId = $"{Context.User.Username}#{Context.User.Discriminator}";
             var bidderRegistration = await GetRegistrationAsync(string.Empty, discordId);
@@ -126,6 +137,14 @@ namespace SuperNova.DiscordBot.Commands
             if (!bidderRegistration.Validated)
             {
                 await ReplyAsync("You are not yet validated to place a bid. Complete your registration or contact an SNF admin for assistance.");
+                return;
+            }
+
+            var currentBid = await GetContractBidAsync(contractId, bidderRegistration.Name);
+            if(currentBid != null)
+            {
+                //todo - allow deletion of bid
+                await ReplyAsync("You have already placed a bid for this contract. If you need to replace it, contact an administrator for assistance.");
                 return;
             }
 
@@ -153,7 +172,68 @@ namespace SuperNova.DiscordBot.Commands
             await channel.SendMessageAsync($"{bidderRegistration.Name} just placed a bid for {contractId}");
 
         }
-        
+
+        [Command("create_hash")]
+        [Summary("Hash a set of text. This is a secure function only available in private messages. No information is stored by the bot, but use at your own risk.")]
+        public async Task HashTest(string toHash)
+        {
+            if (!Context.IsPrivate) return;
+
+            using SHA256 sha256Hash = SHA256.Create();
+            var bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(toHash));
+            var builder = new StringBuilder();
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                builder.Append(bytes[i].ToString("x2"));
+            }
+            await ReplyAsync($"Your hash is {builder}.");
+        }
+
+
+
+
+
+        //[Command("verify_bid")]
+        //[Summary("Verify a bid based on your plain-text")]
+        public async Task VerifyBid(string contractId, string plainText)
+        {
+            if (!Context.IsPrivate) return;
+            
+            var discordId = $"{Context.User.Username}#{Context.User.Discriminator}";
+            var registration = await GetRegistrationAsync(string.Empty, discordId);
+            if (registration == null)
+            {
+                await ReplyAsync("You are not registered to place bids... Contact an admin for assistance.");
+                return;
+            }
+
+            var bid = await GetContractBidAsync(contractId, registration.Name);
+            if(bid == null)
+            {
+                await ReplyAsync($"You don't currently have a bit for {contractId}. Check the name or contact an admin for assistance.");
+                return;
+            }
+            //get bid from sheets
+
+            using SHA256 sha256Hash = SHA256.Create();
+            var bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(plainText));
+            var builder = new StringBuilder();
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                builder.Append(bytes[i].ToString("x2"));
+            }
+
+            if(bid.BidderHash == builder.ToString())
+            {
+                await ReplyAsync("Your bid was verified successfully. TODO");
+            }
+            else
+            {
+                await ReplyAsync("Nope - they don't match. TODO");
+            }
+        }
+
+
         [Command("validate_corp")]
         [Summary("Validate a registration code received from a user in game. !validate_corp {username} {code}")]
         public async Task ValidateRegistration(string prunUserName, string registrationCode)
@@ -225,6 +305,36 @@ namespace SuperNova.DiscordBot.Commands
                 });
             }
             return list;
+        }
+
+        private async Task<List<ContractBid>> GetAllBids(string contractId)
+        {
+            var list = new List<ContractBid>();
+            var range = $"{contractId}_Bidding!A2:D";
+            var sheetId = "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E";
+
+            var results = await _sheetsProxy.GetRange(sheetId, range);
+
+            if (results?.Values == null) return list;
+
+            foreach (var thing in results?.Values)
+            {
+                list.Add(new ContractBid
+                {
+                    PostedAt = thing[0]?.ToString() ?? string.Empty,
+                    BidderName = thing[1]?.ToString() ?? string.Empty,
+                    BidderHash = thing[2]?.ToString() ?? string.Empty,
+                    Verified = bool.Parse(thing[3]?.ToString()?.ToLower() ?? "false"),
+                    PlainText = thing[4]?.ToString() ?? string.Empty
+                });
+            }
+            return list;
+        }
+
+        private async Task<ContractBid> GetContractBidAsync(string contractId, string userName)
+        {
+            var bids = await GetAllBids(contractId);
+            return bids.FirstOrDefault(b => b.BidderName.ToLower() == userName.ToLower());
         }
 
         private async Task<BidderRegistration> GetRegistrationAsync(string prunUserName, string discordId)
