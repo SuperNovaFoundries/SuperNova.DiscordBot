@@ -72,7 +72,7 @@ namespace SuperNova.DiscordBot.Commands
         }
 
 
-        private async Task<CutOffTimes> GetCutoffTimes(string contractId)
+        private async Task<CutOffTimes> GetCutoffTimesAsync(string contractId)
         {
             var bidSheetId = "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E";
             var values = await _sheetsProxy.GetRange(bidSheetId, $"{contractId}_Bidding!D3:D4");
@@ -95,61 +95,81 @@ namespace SuperNova.DiscordBot.Commands
         [Summary("Cancels a bid you have placed")]
         public async Task CancelBid(string contractId, string hash)
         {
-            if (!Context.IsPrivate) return;
-            var registration = await GetRegistrationAsync(string.Empty, $"{Context.User.Username}#{Context.User.Discriminator}");
-            if (registration == null)
+            try
             {
-                await ReplyAsync("You are not registered to place a bid. Register for bidding or contact an admin for assistance.");
-                return;
+                if (!Context.IsPrivate) return;
+                var registration = await GetRegistrationAsync(string.Empty, $"{Context.User.Username}#{Context.User.Discriminator}");
+                if (registration == null)
+                {
+                    await ReplyAsync("You are not registered to place a bid. Register for bidding or contact an admin for assistance.");
+                    return;
+                }
+                if (!registration.Validated)
+                {
+                    await ReplyAsync("You are not registered to place a bid. Complete your registration or contact an admin for assistance.");
+                    return;
+                }
+
+                var cutoffTimes = await GetCutoffTimesAsync(contractId);
+
+
+
+                var allBids = await GetAllBidsAsync(contractId);
+                var bid = allBids?.ToList()?.FirstOrDefault(b => b.BidderHash == hash && b.BidderName == registration.Name);
+                if (bid == null)
+                {
+                    await ReplyAsync("Could not locate a bid matching this hash. Check your entry or contact an admin for assistance.");
+                    return;
+                }
+
+                allBids.Remove(bid);
+                var list = new List<IList<object>>(allBids.Select(bid => new List<object> { bid.PostedAt, bid.BidderName, bid.BidderHash, bid.Verified, bid.PlainText }));
+                var bidSheetId = "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E";
+
+                await _sheetsProxy.UpdateRange(bidSheetId, "A7:E", list);
             }
-            if (!registration.Validated)
+            catch (Exception ex)
             {
-                await ReplyAsync("You are not registered to place a bid. Complete your registration or contact an admin for assistance.");
-                return;
+                await ReplyAsync("I fell and broke my hip... " + ex.Message + ex.StackTrace);
+                throw ex;
             }
 
-            var cutoffTimes = await GetCutoffTimes(contractId);
-
-
-
-            var allBids = await GetAllBids(contractId);
-            var bid = allBids?.ToList()?.FirstOrDefault(b => b.BidderHash == hash && b.BidderName == registration.Name);
-            if (bid == null)
-            {
-                await ReplyAsync("Could not locate a bid matching this hash. Check your entry or contact an admin for assistance.");
-                return;
-            }
-
-            allBids.Remove(bid);
-            var list = new List<IList<object>>(allBids.Select(bid => new List<object> { bid.PostedAt, bid.BidderName, bid.BidderHash, bid.Verified, bid.PlainText }));
-            var bidSheetId = "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E";
-
-            await _sheetsProxy.UpdateRange(bidSheetId, "A7:E", list);
         }
+
         [Command("start_bid")]
-        [Summary("Cancels a bid you have placed")]
+        [Summary("Opens a contract up for bidding")]
         public async Task StartBidding(string contractId, int bidDays, int verifyDays)
         {
-            if (Context.IsPrivate) return;
-            if (Context.Channel.Name != "bidding-admin") return;
 
-            var sheetId = "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E";
-
-            var bidCutoff = DateTime.UtcNow.Date.AddDays(bidDays + 1).AddMinutes(-1);
-            var verifyCutoff = DateTime.UtcNow.Date.AddDays(bidDays + verifyDays + 1).AddMinutes(-1);
-
-            var currentCutoffs = await _sheetsProxy.GetRange(sheetId, $"{contractId}_Bidding!D3:D4");
-            if (currentCutoffs.Values != null)
+            try
             {
-                await ReplyAsync("It looks like this bid has already started...");
-                return;
-            }
-            var list = new List<IList<object>>() {
-                new List<object> { bidCutoff.ToString() },
-                new List<object> { verifyCutoff.ToString() }
-            };
+                if (Context.IsPrivate) return;
+                if (Context.Channel.Name != "bidding-admin") return;
 
-            await _sheetsProxy.UpdateRange(sheetId, "D3:D4", list);
+                var sheetId = "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E";
+
+                var bidCutoff = DateTime.UtcNow.Date.AddDays(bidDays + 1).AddMinutes(-1);
+                var verifyCutoff = DateTime.UtcNow.Date.AddDays(bidDays + verifyDays + 1).AddMinutes(-1);
+
+                var currentCutoffs = await _sheetsProxy.GetRange(sheetId, $"{contractId}_Bidding!D3:D4");
+                if (currentCutoffs.Values != null)
+                {
+                    await ReplyAsync("It looks like this bid has already started...");
+                    return;
+                }
+                var list = new List<IList<object>>() {
+                    new List<object> { bidCutoff.ToString() },
+                    new List<object> { verifyCutoff.ToString() }
+                };
+
+                await _sheetsProxy.UpdateRange(sheetId, "D3:D4", list);
+            }
+            catch (Exception ex)
+            {
+                await ReplyAsync("I fell and broke my hip... " + ex.Message + ex.StackTrace);
+                throw ex;
+            }
+
         }
 
         [Command("register_corp")]
@@ -231,16 +251,30 @@ namespace SuperNova.DiscordBot.Commands
                     return;
                 }
 
+                var cutoffs = await GetCutoffTimesAsync(contractId);
+
+                if (cutoffs.VerifyCutoff == null || cutoffs.BidCutoff == null)
+                {
+                    await ReplyAsync("This contract has not yet been open for bidding.");
+                    return;
+                }
+
+                if (DateTime.UtcNow > cutoffs.BidCutoff)
+                {
+                    await ReplyAsync($"The bidding phase for this contract closed on {((DateTime)cutoffs.BidCutoff).ToLongDateString()}.");
+                    return;
+
+                }
+
                 var list = new List<IList<object>>() {
-                    new List<object> {
-                        DateTime.Now.ToUniversalTime().ToString("dd MMM yyy HH':'mm':'ss 'UTC'"), bidderRegistration.Name, bidHash, "FALSE", "<Hidden>"
-                    }
+                    new List<object> { DateTime.Now.ToUniversalTime().ToString("dd MMM yyy HH':'mm':'ss 'UTC'"), bidderRegistration.Name, bidHash, "FALSE", "<Hidden>"}
                 };
                 var bidSheetId = "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E";
                 var response = await _sheetsProxy.AppendRange(bidSheetId, $"{contractId}_Bidding!A6", list);
 
                 try
                 {
+                    LogTest.LogInformation("OOGA BOOGA");
                     LogTest.LogInformation(response.ToJsonString());
                 }
                 catch (Exception)
@@ -254,6 +288,7 @@ namespace SuperNova.DiscordBot.Commands
                 using var client = new DiscordSocketClient();
                 if (client.GetChannel(853788435113312277) is IMessageChannel channel)
                 {
+                    //this is not working.....
                     await channel.SendMessageAsync($"{bidderRegistration.Name} just placed a bid for {contractId}");
                 }
             }
@@ -266,7 +301,7 @@ namespace SuperNova.DiscordBot.Commands
         }
 
         [Command("hash")]
-        [Summary("Hash a set of text. This is a secure function only available in private messages. No information is stored by the bot, but use at your own risk.")]
+        [Summary("Hash a set of text. This is a secure function only available in private messages. No information is stored or logged by the bot, but use at your own risk.")]
         public async Task HashTest([Remainder] string toHash)
         {
             if (!Context.IsPrivate) return;
@@ -310,12 +345,35 @@ namespace SuperNova.DiscordBot.Commands
                     return;
                 }
 
-                var bids = await GetAllBids(contractId);
+                var bids = await GetAllBidsAsync(contractId);
                 var userBids = bids.Where(b => b.BidderName == registration.Name).ToList();
                 if (userBids.Count == 0)
                 {
                     await ReplyAsync("You do not have any bids to verify.");
+                    return;
                 }
+
+                var cutoffs = await GetCutoffTimesAsync(contractId);
+
+                if (cutoffs.VerifyCutoff == null || cutoffs.BidCutoff == null)
+                {
+                    await ReplyAsync("This contract has not yet been open for bidding.");
+                    return;
+                }
+
+                if (DateTime.UtcNow > cutoffs.VerifyCutoff)
+                {
+                    await ReplyAsync($"The bid verification period for this contract closed on {((DateTime)cutoffs.BidCutoff).ToLongDateString()}.");
+                    return;
+
+                }
+
+                if (DateTime.UtcNow < cutoffs.BidCutoff)
+                {
+                    await ReplyAsync($"The bid verification phase for this contract has not begun yet. It will begin on {((DateTime)cutoffs.BidCutoff).ToLongDateString()}.");
+                    return;
+                }
+
 
                 var verified = false;
                 using var client = new DiscordSocketClient();
@@ -336,7 +394,7 @@ namespace SuperNova.DiscordBot.Commands
                 }
                 if (!verified)
                 {
-                    await ReplyAsync("I was unable to verify your bid. Please check your entry and try gain or contact an admin for assistance");
+                    await ReplyAsync("I was unable to verify your bid. Please check your entry and try again or contact an admin for assistance");
                 }
 
                 var list = new List<IList<object>>(bids.Select(bid => new List<object> { bid.PostedAt, bid.BidderName, bid.BidderHash, bid.Verified, bid.PlainText }));
@@ -426,7 +484,7 @@ namespace SuperNova.DiscordBot.Commands
             return list;
         }
 
-        private async Task<List<ContractBid>> GetAllBids(string contractId)
+        private async Task<List<ContractBid>> GetAllBidsAsync(string contractId)
         {
             var list = new List<ContractBid>();
             var range = $"{contractId}_Bidding!A7:E";

@@ -158,7 +158,10 @@ namespace SuperNova.DiscordBot.Core
             if (message is null || message.Author.IsBot) return;
 
             int argPos = 0;
-            Logger.LogInformation($"Message: {message.Author}: {message.Content}");
+            if (!message.Content.Contains("!hash"))
+            {
+                Logger.LogInformation($"Message: {message.Author}: {message.Content}");
+            }
             if (message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(Client.CurrentUser, ref argPos))
             {
                 var context = new SocketCommandContext(Client, message);
