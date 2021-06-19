@@ -153,7 +153,7 @@ namespace SuperNova.DiscordBot.Commands
 
                 var list = new List<IList<object>>() {
                     new List<object> {
-                        DateTime.Now.ToUniversalTime().ToString("dd MMM yyy HH':'mm':'ss 'UTC'"), bidderRegistration.Name, bidHash, string.Empty, string.Empty
+                        DateTime.Now.ToUniversalTime().ToString("dd MMM yyy HH':'mm':'ss 'UTC'"), bidderRegistration.Name, bidHash, "FALSE", "<Hidden>"
                     }
                 };
                 var bidSheetId = "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E";
@@ -201,10 +201,6 @@ namespace SuperNova.DiscordBot.Commands
             await ReplyAsync($"Your hash is {builder}.");
         }
 
-
-
-
-
         [Command("verify_bid")]
         [Summary("Verify a bid based on your plain-text")]
         public async Task VerifyBid(string contractId, [Remainder]string plainText)
@@ -236,14 +232,28 @@ namespace SuperNova.DiscordBot.Commands
                 {
                     builder.Append(bytes[i].ToString("x2"));
                 }
-
+                
+                
+                using var client = new DiscordSocketClient();
+                var c = client.GetChannel(853788435113312277);
                 if (bid.BidderHash == builder.ToString())
                 {
                     await ReplyAsync("Your bid was verified successfully. TODO");
+                    bid.PlainText = plainText;
+                    bid.Verified = true;
+                    if (c is IMessageChannel channel)
+                    {
+                        await channel.SendMessageAsync($"{bid.BidderName} just verified their bid!");
+                    }
                 }
                 else
                 {
                     await ReplyAsync("Nope - they don't match. TODO");
+                    bid.Verified = false;
+                    if (c is IMessageChannel channel)
+                    {
+                        await channel.SendMessageAsync($"{bid.BidderName} just tried to verify their bid, but it failed.");
+                    }
                 }
             }
             catch (Exception ex)
@@ -252,7 +262,6 @@ namespace SuperNova.DiscordBot.Commands
                 throw ex;
             }
         }
-
 
         [Command("validate_corp")]
         [Summary("Validate a registration code received from a user in game. !validate_corp {username} {code}")]
@@ -305,6 +314,7 @@ namespace SuperNova.DiscordBot.Commands
                 throw;
             }
         }
+        
         private async Task<List<BidderRegistration>> GetAllBidders()
         {
             var list = new List<BidderRegistration>();
