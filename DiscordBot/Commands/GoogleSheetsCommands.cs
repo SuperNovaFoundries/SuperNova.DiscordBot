@@ -176,7 +176,7 @@ namespace SuperNova.DiscordBot.Commands
             }
             catch (Exception ex)
             {
-                await ReplyAsync("I fell and broke my hip...");
+                await ReplyAsync("I fell and broke my hip..." + ex.Message + ex.StackTrace);
                 throw ex;
             }
 
@@ -206,39 +206,47 @@ namespace SuperNova.DiscordBot.Commands
         //[Summary("Verify a bid based on your plain-text")]
         public async Task VerifyBid(string contractId, string plainText)
         {
-            if (!Context.IsPrivate) return;
+            try
+            {
+                if (!Context.IsPrivate) return;
 
-            var discordId = $"{Context.User.Username}#{Context.User.Discriminator}";
-            var registration = await GetRegistrationAsync(string.Empty, discordId);
-            if (registration == null)
-            {
-                await ReplyAsync("You are not registered to place bids... Contact an admin for assistance.");
-                return;
-            }
+                var discordId = $"{Context.User.Username}#{Context.User.Discriminator}";
+                var registration = await GetRegistrationAsync(string.Empty, discordId);
+                if (registration == null)
+                {
+                    await ReplyAsync("You are not registered to place bids... Contact an admin for assistance.");
+                    return;
+                }
 
-            var bid = await GetContractBidAsync(contractId, registration.Name);
-            if (bid == null)
-            {
-                await ReplyAsync($"You don't currently have a bit for {contractId}. Check the name or contact an admin for assistance.");
-                return;
-            }
-            //get bid from sheets
+                var bid = await GetContractBidAsync(contractId, registration.Name);
+                if (bid == null)
+                {
+                    await ReplyAsync($"You don't currently have a bit for {contractId}. Check the name or contact an admin for assistance.");
+                    return;
+                }
+                //get bid from sheets
 
-            using SHA256 sha256Hash = SHA256.Create();
-            var bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(plainText));
-            var builder = new StringBuilder();
-            for (int i = 0; i < bytes.Length; i++)
-            {
-                builder.Append(bytes[i].ToString("x2"));
-            }
+                using SHA256 sha256Hash = SHA256.Create();
+                var bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(plainText));
+                var builder = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    builder.Append(bytes[i].ToString("x2"));
+                }
 
-            if (bid.BidderHash == builder.ToString())
-            {
-                await ReplyAsync("Your bid was verified successfully. TODO");
+                if (bid.BidderHash == builder.ToString())
+                {
+                    await ReplyAsync("Your bid was verified successfully. TODO");
+                }
+                else
+                {
+                    await ReplyAsync("Nope - they don't match. TODO");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                await ReplyAsync("Nope - they don't match. TODO");
+                await ReplyAsync("I fell and broke my hip... " + ex.Message + ex.StackTrace);
+                throw ex;
             }
         }
 
