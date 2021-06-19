@@ -176,7 +176,7 @@ namespace SuperNova.DiscordBot.Commands
             }
             catch (Exception ex)
             {
-                await ReplyAsync("I fell and broke my hip...");
+                await ReplyAsync("I fell and broke my hip..." + ex.Message + ex.StackTrace);
                 throw ex;
             }
 
