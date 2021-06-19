@@ -185,9 +185,9 @@ namespace SuperNova.DiscordBot.Commands
 
         }
 
-        [Command("create_hash")]
+        [Command("hash")]
         [Summary("Hash a set of text. This is a secure function only available in private messages. No information is stored by the bot, but use at your own risk.")]
-        public async Task HashTest(string toHash)
+        public async Task HashTest([Remainder]string toHash)
         {
             if (!Context.IsPrivate) return;
 
@@ -205,8 +205,8 @@ namespace SuperNova.DiscordBot.Commands
 
 
 
-        //[Command("verify_bid")]
-        //[Summary("Verify a bid based on your plain-text")]
+        [Command("verify_bid")]
+        [Summary("Verify a bid based on your plain-text")]
         public async Task VerifyBid(string contractId, [Remainder]string plainText)
         {
             try
