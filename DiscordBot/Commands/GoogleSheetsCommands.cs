@@ -56,7 +56,7 @@ namespace SuperNova.DiscordBot.Commands
         private IGoogleSheetsProxy _sheetsProxy { get; set; } = null;
 
         private static Test LogTest = new Test("VickeryBidder");
-        
+
         private static Random random = new Random();
         private readonly string _sheetId = "1xtV9MTohgWfm3oN7kmms0Fa4Lw_Wg8358qrPXWvA3nM";
         public VickeryBiddingCommands()
@@ -68,7 +68,7 @@ namespace SuperNova.DiscordBot.Commands
         [Summary("Register a new account for government contract bidding. register_corp {!register_corp {PrunCorpName}")]
         public async Task RegisterNewBidderAsync(string prunUsername)
         {
-                       
+
             if (!Context.IsPrivate)
             {
                 return;
@@ -93,11 +93,11 @@ namespace SuperNova.DiscordBot.Commands
                     Validated = false
                 };
                 var list = new List<IList<object>>() {
-                    new List<object> { 
-                        bidderRegistration.Name, bidderRegistration.DiscordId, bidderRegistration.RegistrationCode, bidderRegistration.Validated.ToString().ToUpper() 
+                    new List<object> {
+                        bidderRegistration.Name, bidderRegistration.DiscordId, bidderRegistration.RegistrationCode, bidderRegistration.Validated.ToString().ToUpper()
                     }
                 };
-                
+
 
                 var response = await _sheetsProxy.AppendRange(_sheetId, "Registrations!A1", list);
                 await Context.User.SendMessageAsync($"Your unique registration code is {bidderRegistration.RegistrationCode}. You must send a message with this code to an SNF Admin in-game. If you have questions, please contact an SNF admin for assistance.");
@@ -125,51 +125,60 @@ namespace SuperNova.DiscordBot.Commands
         [Summary("Place a bid for an infrastructure contract. !bid {contractId} {hash}")]
         public async Task BidCommand(string contractId, string bidHash)
         {
-            if (!Context.IsPrivate) return;
-
-            var discordId = $"{Context.User.Username}#{Context.User.Discriminator}";
-            var bidderRegistration = await GetRegistrationAsync(string.Empty, discordId);
-            if (bidderRegistration == null)
-            {
-                await ReplyAsync("You are not registered to place a bid. Register for bidding or contact an SNF admin for assistance.");
-                return;
-            }
-            if (!bidderRegistration.Validated)
-            {
-                await ReplyAsync("You are not yet validated to place a bid. Complete your registration or contact an SNF admin for assistance.");
-                return;
-            }
-
-            var currentBid = await GetContractBidAsync(contractId, bidderRegistration.Name);
-            if(currentBid != null)
-            {
-                //todo - allow deletion of bid
-                await ReplyAsync("You have already placed a bid for this contract. If you need to replace it, contact an administrator for assistance.");
-                return;
-            }
-
-            var list = new List<IList<object>>() {
-                new List<object> {
-                    DateTime.Now.ToUniversalTime().ToString("dd MMM yyy HH':'mm':'ss 'UTC'"), bidderRegistration.Name, bidHash, string.Empty, string.Empty
-                }
-            };
-            var bidSheetId = "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E";
-            var response = await _sheetsProxy.AppendRange(bidSheetId, $"{contractId}_Bidding!A6", list);
-
             try
             {
-                LogTest.LogInformation(response.ToJsonString());
+                if (!Context.IsPrivate) return;
+
+                var discordId = $"{Context.User.Username}#{Context.User.Discriminator}";
+                var bidderRegistration = await GetRegistrationAsync(string.Empty, discordId);
+                if (bidderRegistration == null)
+                {
+                    await ReplyAsync("You are not registered to place a bid. Register for bidding or contact an SNF admin for assistance.");
+                    return;
+                }
+                if (!bidderRegistration.Validated)
+                {
+                    await ReplyAsync("You are not yet validated to place a bid. Complete your registration or contact an SNF admin for assistance.");
+                    return;
+                }
+
+                var currentBid = await GetContractBidAsync(contractId, bidderRegistration.Name);
+                if (currentBid != null)
+                {
+                    //todo - allow deletion of bid
+                    await ReplyAsync("You have already placed a bid for this contract. If you need to replace it, contact an administrator for assistance.");
+                    return;
+                }
+
+                var list = new List<IList<object>>() {
+                    new List<object> {
+                        DateTime.Now.ToUniversalTime().ToString("dd MMM yyy HH':'mm':'ss 'UTC'"), bidderRegistration.Name, bidHash, string.Empty, string.Empty
+                    }
+                };
+                var bidSheetId = "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E";
+                var response = await _sheetsProxy.AppendRange(bidSheetId, $"{contractId}_Bidding!A6", list);
+
+                try
+                {
+                    LogTest.LogInformation(response.ToJsonString());
+                }
+                catch (Exception)
+                {
+                    await ReplyAsync("Logging failed...");
+                    //eat - testing logging from within command.
+                }
+
+                await ReplyAsync("Your bid has been registered and is now viewable in the contract page.");
+
+                var client = new DiscordSocketClient();
+                var channel = client.GetChannel(853788435113312277) as IMessageChannel;
+                await channel.SendMessageAsync($"{bidderRegistration.Name} just placed a bid for {contractId}");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                //eat - testing logging from within command.
+                await ReplyAsync("I fell and broke my hip...");
+                throw ex;
             }
-
-            await ReplyAsync("Your bid has been registered and is now viewable in the contract page.");
-
-            var client = new DiscordSocketClient();
-            var channel = client.GetChannel(853788435113312277) as IMessageChannel;
-            await channel.SendMessageAsync($"{bidderRegistration.Name} just placed a bid for {contractId}");
 
         }
 
@@ -198,7 +207,7 @@ namespace SuperNova.DiscordBot.Commands
         public async Task VerifyBid(string contractId, string plainText)
         {
             if (!Context.IsPrivate) return;
-            
+
             var discordId = $"{Context.User.Username}#{Context.User.Discriminator}";
             var registration = await GetRegistrationAsync(string.Empty, discordId);
             if (registration == null)
@@ -208,7 +217,7 @@ namespace SuperNova.DiscordBot.Commands
             }
 
             var bid = await GetContractBidAsync(contractId, registration.Name);
-            if(bid == null)
+            if (bid == null)
             {
                 await ReplyAsync($"You don't currently have a bit for {contractId}. Check the name or contact an admin for assistance.");
                 return;
@@ -223,7 +232,7 @@ namespace SuperNova.DiscordBot.Commands
                 builder.Append(bytes[i].ToString("x2"));
             }
 
-            if(bid.BidderHash == builder.ToString())
+            if (bid.BidderHash == builder.ToString())
             {
                 await ReplyAsync("Your bid was verified successfully. TODO");
             }
@@ -247,7 +256,7 @@ namespace SuperNova.DiscordBot.Commands
             {
                 return;
             }
-            
+
             var registration = await GetRegistrationAsync(prunUserName, string.Empty);
             if (registration == null)
             {
@@ -310,7 +319,7 @@ namespace SuperNova.DiscordBot.Commands
         private async Task<List<ContractBid>> GetAllBids(string contractId)
         {
             var list = new List<ContractBid>();
-            var range = $"{contractId}_Bidding!A2:D";
+            var range = $"{contractId}_Bidding!A2:E";
             var sheetId = "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E";
 
             var results = await _sheetsProxy.GetRange(sheetId, range);
@@ -410,7 +419,7 @@ namespace SuperNova.DiscordBot.Commands
                 var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
                 if (!authorized) return;
             }
-            
+
 
 
 
@@ -529,7 +538,7 @@ namespace SuperNova.DiscordBot.Commands
 
         private async Task<bool> IsMember(string discordId)
         {
-            if(_members.Count == 0)
+            if (_members.Count == 0)
             {
                 var values = await _sheetsProxy.GetRange("1tyYLfgAqD7Mm1Lv8-fc59RuPdPZ_pa0HYjY7TVI_KKo", "Corp-Members!C2:C");
                 _members = values?.Values?.Where(m => m.Count == 1).Select(m => m[0].ToString()).ToList();
