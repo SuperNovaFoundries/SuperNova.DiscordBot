@@ -101,10 +101,11 @@ namespace SuperNova.DiscordBot.Commands
 
                 var response = await _sheetsProxy.AppendRange(_sheetId, "Registrations!A1", list);
                 await Context.User.SendMessageAsync($"Your unique registration code is {bidderRegistration.RegistrationCode}. You must send a message with this code to an SNF Admin in-game. If you have questions, please contact an SNF admin for assistance.");
-
-                var client = new DiscordSocketClient();
-                var channel = client.GetChannel(853788435113312277) as IMessageChannel;
-                await channel.SendMessageAsync($"{prunUsername} just requested a registration code with discord username {discordId}");
+                using var client = new DiscordSocketClient();
+                if (client.GetChannel(853788435113312277) is IMessageChannel channel)
+                {
+                    await channel.SendMessageAsync($"{prunUsername} just requested a registration code with discord username {discordId}");
+                }
             }
             catch (Exception ex)
             {
@@ -169,10 +170,12 @@ namespace SuperNova.DiscordBot.Commands
                 }
 
                 await ReplyAsync("Your bid has been registered and is now viewable in the contract page.");
-
-                var client = new DiscordSocketClient();
-                var channel = client.GetChannel(853788435113312277) as IMessageChannel;
-                await channel.SendMessageAsync($"{bidderRegistration.Name} just placed a bid for {contractId}");
+                
+                using var client = new DiscordSocketClient();
+                if (client.GetChannel(853788435113312277) is IMessageChannel channel)
+                {
+                    await channel.SendMessageAsync($"{bidderRegistration.Name} just placed a bid for {contractId}");
+                }
             }
             catch (Exception ex)
             {
@@ -204,7 +207,7 @@ namespace SuperNova.DiscordBot.Commands
 
         //[Command("verify_bid")]
         //[Summary("Verify a bid based on your plain-text")]
-        public async Task VerifyBid(string contractId, string plainText)
+        public async Task VerifyBid(string contractId, [Remainder]string plainText)
         {
             try
             {
