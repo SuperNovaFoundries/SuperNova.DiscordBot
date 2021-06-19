@@ -9,6 +9,8 @@ using Discord.WebSocket;
 using System.Linq;
 using System.Collections.Generic;
 using Discord;
+using SuperNova.AWS.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace SuperNova.DiscordBot.Commands
 {
@@ -27,12 +29,23 @@ namespace SuperNova.DiscordBot.Commands
         public string BidHash { get; set; }
     }
 
+    public class Test : LoggingResource
+    {
+        public Test(string loggername) : base(loggername) { }
+
+        public void LogInformation(string info)
+        {
+            Logger.LogInformation(info);
+        }
+    }
+
     [DiscordCommand]
     public class VickeryBiddingCommands : ModuleBase<SocketCommandContext>
     {
         [Import]
         private IGoogleSheetsProxy _sheetsProxy { get; set; } = null;
 
+        private static Test LogTest = new Test("VickeryBidder");
         
         private static Random random = new Random();
         private readonly string _sheetId = "1xtV9MTohgWfm3oN7kmms0Fa4Lw_Wg8358qrPXWvA3nM";
@@ -98,25 +111,49 @@ namespace SuperNova.DiscordBot.Commands
             await ReplyAsync($"Long text was " + longText);
         }
 
-
-        public async Task<string> PlaceBid(string contractId, string bidHash)
+        [Command("bid")]
+        [Summary("Place a bid for an infrastructure contract. !bid {contractId} {hash}")]
+        public async Task BidCommand(string contractId, string bidHash)
         {
 
             var discordId = $"{Context.User.Username}#{Context.User.Discriminator}";
             var bidderRegistration = await GetRegistrationAsync(string.Empty, discordId);
             if (bidderRegistration == null)
             {
-                return "You are not registered to place a bid. Register for bidding or contact an SNF admin for assistance.";
+                await ReplyAsync("You are not registered to place a bid. Register for bidding or contact an SNF admin for assistance.");
+                return;
             }
             if (!bidderRegistration.Validated)
             {
-                return "You are not yet validated to place a bid. Complete your registration or contact an SNF admin for assistance.";
+                await ReplyAsync("You are not yet validated to place a bid. Complete your registration or contact an SNF admin for assistance.");
+                return;
             }
 
-            return "You are validated, but this feature is not ready yet.";
+            var list = new List<IList<object>>() {
+                new List<object> {
+                    DateTime.Now.ToUniversalTime().ToString("dd MMM yyy HH':'mm':'ss 'UTC'"), bidderRegistration.Name, bidHash, string.Empty, string.Empty
+                }
+            };
+            var bidSheetId = "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E";
+            var response = await _sheetsProxy.AppendRange(bidSheetId, $"{contractId}_Bidding!A6", list);
+
+            try
+            {
+                LogTest.LogInformation(response.ToJsonString());
+            }
+            catch (Exception)
+            {
+                //eat - testing logging from within command.
+            }
+
+            await ReplyAsync("Your bid has been registered and is now viewable in the contract page.");
+
+            var client = new DiscordSocketClient();
+            var channel = client.GetChannel(853788435113312277) as IMessageChannel;
+            await channel.SendMessageAsync($"{bidderRegistration.Name} just placed a bid for {contractId}");
+
         }
-
-
+        
         [Command("validate_corp")]
         [Summary("Validate a registration code received from a user in game. !validate_corp {username} {code}")]
         public async Task ValidateRegistration(string prunUserName, string registrationCode)
