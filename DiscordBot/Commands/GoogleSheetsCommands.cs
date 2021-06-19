@@ -341,7 +341,7 @@ namespace SuperNova.DiscordBot.Commands
                     PostedAt = thing[0]?.ToString() ?? string.Empty,
                     BidderName = thing[1]?.ToString() ?? string.Empty,
                     BidderHash = thing[2]?.ToString() ?? string.Empty,
-                    Verified = bool.Parse(thing[3]?.ToString()?.ToLower() ?? "false"),
+                    Verified = bool.TryParse(thing[3].ToString().ToLower(), out var valid) && valid,
                     PlainText = thing[4]?.ToString() ?? string.Empty
                 });
             }
