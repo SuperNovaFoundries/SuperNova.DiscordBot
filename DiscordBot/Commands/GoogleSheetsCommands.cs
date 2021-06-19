@@ -176,7 +176,7 @@ namespace SuperNova.DiscordBot.Commands
             }
             catch (Exception ex)
             {
-                await ReplyAsync("I fell and broke my hip..." + ex.Message + ex.StackTrace);
+                await ReplyAsync("I fell and broke my hip...");
                 throw ex;
             }
 
@@ -319,7 +319,7 @@ namespace SuperNova.DiscordBot.Commands
         private async Task<List<ContractBid>> GetAllBids(string contractId)
         {
             var list = new List<ContractBid>();
-            var range = $"{contractId}_Bidding!A2:E";
+            var range = $"{contractId}_Bidding!A7:E";
             var sheetId = "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E";
 
             var results = await _sheetsProxy.GetRange(sheetId, range);
