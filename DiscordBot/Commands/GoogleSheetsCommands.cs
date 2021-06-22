@@ -63,8 +63,8 @@ namespace SuperNova.DiscordBot.Commands
         [Import]
         private IGoogleSheetsProxy _sheetsProxy { get; set; } = null;
 
-        [Import]
-        private IConnectionService _connectionService { get; set; } = null;
+        //[Import]
+        //private IConnectionService _connectionService { get; set; } = null;
 
         private static Test LogTest = new Test("VickeryBidder");
 
@@ -306,10 +306,10 @@ namespace SuperNova.DiscordBot.Commands
 
                 await ReplyAsync("Your bid has been registered and is now viewable in the contract page.");
                 
-                if (_connectionService.Client.GetChannel(853788435113312277) is IMessageChannel channel)
-                {
-                    await channel.SendMessageAsync($"{bidderRegistration.Name} just placed a bid for {contractId}");
-                }
+                //if (_connectionService.Client.GetChannel(853788435113312277) is IMessageChannel channel)
+                //{
+                //    await channel.SendMessageAsync($"{bidderRegistration.Name} just placed a bid for {contractId}");
+                //}
 
             }
             catch (Exception ex)
