@@ -13,6 +13,7 @@ using SuperNova.AWS.Logging;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Text;
+using SuperNova.DiscordBot.Contract;
 
 namespace SuperNova.DiscordBot.Commands
 {
@@ -61,6 +62,9 @@ namespace SuperNova.DiscordBot.Commands
     {
         [Import]
         private IGoogleSheetsProxy _sheetsProxy { get; set; } = null;
+
+        [Import]
+        private IConnectionService _connectionService { get; set; } = null;
 
         private static Test LogTest = new Test("VickeryBidder");
 
@@ -301,13 +305,12 @@ namespace SuperNova.DiscordBot.Commands
                 }
 
                 await ReplyAsync("Your bid has been registered and is now viewable in the contract page.");
-
-                using var client = new DiscordSocketClient();
-                if (client.GetChannel(853788435113312277) is IMessageChannel channel)
+                
+                if (_connectionService.Client.GetChannel(853788435113312277) is IMessageChannel channel)
                 {
-                    //this is not working.....
                     await channel.SendMessageAsync($"{bidderRegistration.Name} just placed a bid for {contractId}");
                 }
+
             }
             catch (Exception ex)
             {
@@ -315,6 +318,11 @@ namespace SuperNova.DiscordBot.Commands
                 throw ex;
             }
 
+        }
+
+        private Task Client_Ready()
+        {
+            throw new NotImplementedException();
         }
 
         [Command("hash")]
@@ -330,7 +338,7 @@ namespace SuperNova.DiscordBot.Commands
             {
                 builder.Append(bytes[i].ToString("x2"));
             }
-            await ReplyAsync($"Your hash is {builder}.");
+            await ReplyAsync($"Your hash is {builder}");
         }
 
         private string getHash(string text)
@@ -544,6 +552,10 @@ namespace SuperNova.DiscordBot.Commands
 
         [Import]
         private IGoogleSheetsProxy _sheetsProxy { get; set; } = null;
+
+        [Import]
+        private IConnectionService _connectionService { get; set; } = null;
+
         private readonly string _sheetId = "1ENpnE964UInUGfjzt8ShAbKtqNF8byDGfT01vZHlNAk";
         private List<string> _publicChannels = new List<string>
         {
@@ -590,13 +602,19 @@ namespace SuperNova.DiscordBot.Commands
 
             if (_publicChannels.Contains(channel.Name))
             {
+                
                 return;
             }
 
             if (Context.IsPrivate)
             {
                 var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
-                if (!authorized) return;
+                if (!authorized)
+                {
+                    var logChannel = _connectionService.Client.GetChannel(833055288953012344) as IMessageChannel;
+                    await logChannel.SendMessageAsync($"{Context.User.Username}#{Context.User.DiscriminatorValue} tried to use !cp but was unauthorized...");
+                    return;
+                }
             }
 
 
@@ -632,7 +650,12 @@ namespace SuperNova.DiscordBot.Commands
             if (Context.IsPrivate)
             {
                 var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
-                if (!authorized) return;
+                if (!authorized)
+                {
+                    var logChannel = _connectionService.Client.GetChannel(833055288953012344) as IMessageChannel;
+                    await logChannel.SendMessageAsync($"{Context.User.Username}#{Context.User.DiscriminatorValue} tried to use !cp but was unauthorized...");
+                    return;
+                }
             }
 
             var info = await _sheetsProxy.GetCorpCommodityInfoAsync(_sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
@@ -666,7 +689,12 @@ namespace SuperNova.DiscordBot.Commands
             if (Context.IsPrivate)
             {
                 var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
-                if (!authorized) return;
+                if (!authorized)
+                {
+                    var logChannel = _connectionService.Client.GetChannel(833055288953012344) as IMessageChannel;
+                    await logChannel.SendMessageAsync($"{Context.User.Username}#{Context.User.DiscriminatorValue} tried to use !cp but was unauthorized...");
+                    return;
+                }
             }
 
             var info = await _sheetsProxy.GetCorpCommodityInfoAsync(_sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
@@ -701,7 +729,12 @@ namespace SuperNova.DiscordBot.Commands
             if (Context.IsPrivate)
             {
                 var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
-                if (!authorized) return;
+                if (!authorized)
+                {
+                    var logChannel = _connectionService.Client.GetChannel(833055288953012344) as IMessageChannel;
+                    await logChannel.SendMessageAsync($"{Context.User.Username}#{Context.User.DiscriminatorValue} tried to use !cp but was unauthorized...");
+                    return;
+                }
             }
 
             var info = await _sheetsProxy.GetCorpCommodityInfoAsync(_sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
@@ -721,6 +754,7 @@ namespace SuperNova.DiscordBot.Commands
             {
                 var values = await _sheetsProxy.GetRange("1tyYLfgAqD7Mm1Lv8-fc59RuPdPZ_pa0HYjY7TVI_KKo", "Corp-Members!C2:C");
                 _members = values?.Values?.Where(m => m.Count == 1).Select(m => m[0].ToString()).ToList();
+
             }
             return _members.Contains(discordId);
         }
