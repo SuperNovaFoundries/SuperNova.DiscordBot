@@ -672,6 +672,71 @@ namespace SuperNova.DiscordBot.Commands
             }
         }
 
+
+        [Command("vallis")]
+        [Alias("vallis")]
+        [Summary("Get corporate price for a given commodity. '3 BDE' 'BDE 3' 'BDE' '3 BDE 2400.34' and 'BDE 3 2400.34' are all valid.")]
+        public async Task VallisBufferPriceAsync(int quantity, string commodity)
+        {
+            var channel = Context.Channel;
+            if (_publicChannels.Contains(channel.Name))
+            {
+                return;
+            }
+            if (Context.IsPrivate)
+            {
+                var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
+                if (!authorized)
+                {
+                    var logChannel = _connectionService.Client.GetChannel(833055288953012344) as IMessageChannel;
+                    await logChannel.SendMessageAsync($"{Context.User.Username}#{Context.User.DiscriminatorValue} tried to use !cp but was unauthorized...");
+                    return;
+                }
+            }
+
+            var range = await _sheetsProxy.GetRange("1tyYLfgAqD7Mm1Lv8-fc59RuPdPZ_pa0HYjY7TVI_KKo", "PL-VallisMgmt!AJ3:AK");
+
+            if (range.Values == null)
+            {
+                await ReplyAsync($"Couldn't find a buffer price on Vallis for {commodity}");
+                return;
+            }
+
+            var match = range.Values.FirstOrDefault(i => i[0].ToString() == commodity.ToUpper());
+            if (match == null || match.Count == 0)
+            {
+                await ReplyAsync($"Couldn't find a buffer price on Vallis for {commodity}");
+                return;
+            }
+            if (!decimal.TryParse(match[1].ToString(), out var price))
+            {
+                await ReplyAsync($"Couldn't find a buffer price on Vallis for {commodity}");
+                return;
+            }
+
+            var total = price * quantity;
+            await ReplyAsync($"{quantity} {commodity} = {total} NCC");
+
+        }
+
+        [Command("vallis")]
+        [Alias("vallis")]
+        [Summary("Get Vallis buffer price for a given commodity. '3 BDE' 'BDE 3' 'BDE' '3 BDE 2400.34' and 'BDE 3 2400.34' are all valid.")]
+        public async Task VallisBufferPriceAsync(string commodity)
+        {
+            await VallisBufferPriceAsync(1, commodity);
+
+        }
+
+        [Command("vallis")]
+        [Alias("vallis")]
+        [Summary("Get Vallis buffer price for a given commodity. '3 BDE' 'BDE 3' 'BDE' '3 BDE 2400.34' and 'BDE 3 2400.34' are all valid.")]
+        public async Task VallisBufferPriceAsync(string commodity, int quantity)
+        {
+            await VallisBufferPriceAsync(quantity, commodity);
+
+        }
+
         #endregion
 
         [Command("corpprice")]
