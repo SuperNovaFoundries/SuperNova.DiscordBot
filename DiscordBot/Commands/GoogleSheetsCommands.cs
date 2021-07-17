@@ -183,7 +183,7 @@ namespace SuperNova.DiscordBot.Commands
                     new List<object> { verifyCutoff.ToString() }
                 };
 
-                await _sheetsProxy.UpdateRange(sheetId, "D3:D4", list);
+                await _sheetsProxy.UpdateRange(sheetId, $"{contractId}_Bidding!D3:D4", list);
             }
             catch (Exception ex)
             {
