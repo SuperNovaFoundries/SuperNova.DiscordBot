@@ -694,7 +694,7 @@ namespace SuperNova.DiscordBot.Commands
                 }
             }
 
-            var range = await _sheetsProxy.GetRange("1tyYLfgAqD7Mm1Lv8-fc59RuPdPZ_pa0HYjY7TVI_KKo", "PL-VallisMgmt!AJ3:AK");
+            var range = await _sheetsProxy.GetRange("1tyYLfgAqD7Mm1Lv8-fc59RuPdPZ_pa0HYjY7TVI_KKo", "PL-VallisMgmt!AI3:AJ");
 
             if (range.Values == null)
             {
