@@ -425,7 +425,7 @@ namespace SuperNova.DiscordBot.Commands
                 var list = new List<IList<object>>(bids.Select(bid => new List<object> { bid.PostedAt, bid.BidderName, bid.BidderHash, bid.Verified, bid.PlainText }));
                 var bidSheetId = "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E";
 
-                await _sheetsProxy.UpdateRange(bidSheetId, "A7:E", list);
+                await _sheetsProxy.UpdateRange(bidSheetId, $"{contractId}_Bidding!A7:E", list);
 
             }
             catch (Exception ex)
