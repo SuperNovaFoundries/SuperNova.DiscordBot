@@ -330,15 +330,7 @@ namespace SuperNova.DiscordBot.Commands
         public async Task HashTest([Remainder] string toHash)
         {
             if (!Context.IsPrivate) return;
-
-            using SHA256 sha256Hash = SHA256.Create();
-            var bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(toHash));
-            var builder = new StringBuilder();
-            for (int i = 0; i < bytes.Length; i++)
-            {
-                builder.Append(bytes[i].ToString("x2"));
-            }
-            await ReplyAsync($"Your hash is {builder}");
+            await ReplyAsync($"Your hash is {getHash(toHash)}");
         }
 
         private string getHash(string text)
@@ -688,9 +680,8 @@ namespace SuperNova.DiscordBot.Commands
                 var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
                 if (!authorized)
                 {
-                    var logChannel = _connectionService.Client.GetChannel(833055288953012344) as IMessageChannel;
-                    await logChannel.SendMessageAsync($"{Context.User.Username}#{Context.User.DiscriminatorValue} tried to use !cp but was unauthorized...");
-                    return;
+                    authorized = await IsMember($"{Context.User.Username}#{Context.User.Discriminator}");
+                    if(!authorized) return;
                 }
             }
 
@@ -796,8 +787,6 @@ namespace SuperNova.DiscordBot.Commands
                 var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
                 if (!authorized)
                 {
-                    var logChannel = _connectionService.Client.GetChannel(833055288953012344) as IMessageChannel;
-                    await logChannel.SendMessageAsync($"{Context.User.Username}#{Context.User.DiscriminatorValue} tried to use !cp but was unauthorized...");
                     return;
                 }
             }
@@ -818,10 +807,11 @@ namespace SuperNova.DiscordBot.Commands
             if (_members.Count == 0)
             {
                 var values = await _sheetsProxy.GetRange("1tyYLfgAqD7Mm1Lv8-fc59RuPdPZ_pa0HYjY7TVI_KKo", "Corp-Members!C2:C");
-                _members = values?.Values?.Where(m => m.Count == 1).Select(m => m[0].ToString()).ToList();
+                _members = values?.Values?.Where(m => m.Count == 1).Select(m => m[0].ToString().ToLower()).ToList();
+                
 
             }
-            return _members.Contains(discordId);
+            return _members.Contains(discordId.ToLower());
         }
 
     }
