@@ -67,12 +67,22 @@ namespace SuperNova.DiscordBot.Commands
         //private IConnectionService _connectionService { get; set; } = null;
 
         private static Test LogTest = new Test("VickeryBidder");
-
+        private readonly string _bidSheedId = Environment.GetEnvironmentVariable("BID_SHEET");
+        private readonly string _corpSheetId = Environment.GetEnvironmentVariable("CORP_SHEET");
         private static Random random = new Random();
         private readonly string _sheetId = "1xtV9MTohgWfm3oN7kmms0Fa4Lw_Wg8358qrPXWvA3nM";
         public VickeryBiddingCommands()
         {
             MEFLoader.SatisfyImportsOnce(this);
+        }
+
+        [Command("debug_test1")]
+        public async Task DebugTest1(){
+
+            LogTest.LogInformation(_bidSheedId);
+            LogTest.LogInformation(_corpSheetId);
+            LogTest.LogInformation("DONE!!!");
+            await ReplyAsync("Done!");
         }
 
 
@@ -145,7 +155,7 @@ namespace SuperNova.DiscordBot.Commands
 
                 var bidSheetId = "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E";
 
-                await _sheetsProxy.UpdateRange(bidSheetId, "A7:E", list);
+                await _sheetsProxy.UpdateRange(bidSheetId, $"{contractId}_Bidding!A7:E", list);
 
                 await ReplyAsync("Your bid was successfully cancelled.");
             }
@@ -320,10 +330,6 @@ namespace SuperNova.DiscordBot.Commands
 
         }
 
-        private Task Client_Ready()
-        {
-            throw new NotImplementedException();
-        }
 
         [Command("hash")]
         [Summary("Hash a set of text. This is a secure function only available in private messages. No information is stored or logged by the bot, but use at your own risk.")]
@@ -534,10 +540,6 @@ namespace SuperNova.DiscordBot.Commands
 
     }
 
-
-
-
-
     [DiscordCommand]
     public class GoogleSheetsCommands : ModuleBase<SocketCommandContext>
     {
@@ -585,6 +587,8 @@ namespace SuperNova.DiscordBot.Commands
             await CorpPriceAsync(commodity, quantity);
         }
 
+       
+
         [Command("corpprice")]
         [Alias("cp")]
         [Summary("Get corporate price for a given commodity. '3 BDE' 'BDE 3' 'BDE' '3 BDE 2400.34' and 'BDE 3 2400.34' are all valid.")]
@@ -601,16 +605,13 @@ namespace SuperNova.DiscordBot.Commands
             if (Context.IsPrivate)
             {
                 var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
-                if (!authorized)
-                {
-                    var logChannel = _connectionService.Client.GetChannel(833055288953012344) as IMessageChannel;
-                    await logChannel.SendMessageAsync($"{Context.User.Username}#{Context.User.DiscriminatorValue} tried to use !cp but was unauthorized...");
+                //LogTest.LogError($"USER WAS NOT AUTHENTICATED: {Context.User.Username}#{Context.User.DiscriminatorValue}")
+
+                if(!authorized){
+                    await ReplyAsync($"I couldn't authorize you... does {Context.User.Username}#{Context.User.DiscriminatorValue} match your discord username, and are you registered to use this command?");
                     return;
                 }
             }
-
-
-
 
             var info = await _sheetsProxy.GetCorpCommodityInfoAsync(_sheetId, "Corp-Prices!C45:N386", commodity.ToUpper());
             if (info?.CorpPrice == null)
@@ -727,6 +728,69 @@ namespace SuperNova.DiscordBot.Commands
             await VallisBufferPriceAsync(quantity, commodity);
 
         }
+
+        //[Command("montem")]
+        //[Alias("montem")]
+        //[Summary("Get corporate price for a given commodity. '3 BDE' 'BDE 3' 'BDE' '3 BDE 2400.34' and 'BDE 3 2400.34' are all valid.")]
+        //public async Task MontemBufferPriceAsync(int quantity, string commodity)
+        //{
+        //    var channel = Context.Channel;
+        //    if (_publicChannels.Contains(channel.Name))
+        //    {
+        //        return;
+        //    }
+        //    if (Context.IsPrivate)
+        //    {
+        //        var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
+        //        if (!authorized)
+        //        {
+        //            authorized = await IsMember($"{Context.User.Username}#{Context.User.Discriminator}");
+        //            if(!authorized) return;
+        //        }
+        //    }
+
+        //    var range = await _sheetsProxy.GetRange("1tyYLfgAqD7Mm1Lv8-fc59RuPdPZ_pa0HYjY7TVI_KKo", "PL-VallisMgmt!AI3:AJ");
+
+        //    if (range.Values == null)
+        //    {
+        //        await ReplyAsync($"Couldn't find a buffer price on Vallis for {commodity}");
+        //        return;
+        //    }
+
+        //    var match = range.Values.FirstOrDefault(i => i[0].ToString() == commodity.ToUpper());
+        //    if (match == null || match.Count == 0)
+        //    {
+        //        await ReplyAsync($"Couldn't find a buffer price on Vallis for {commodity}");
+        //        return;
+        //    }
+        //    if (!decimal.TryParse(match[1].ToString(), out var price))
+        //    {
+        //        await ReplyAsync($"Couldn't find a buffer price on Vallis for {commodity}");
+        //        return;
+        //    }
+
+        //    var total = price * quantity;
+        //    await ReplyAsync($"{quantity} {commodity} = {total} NCC");
+
+        //}
+
+        //[Command("montem")]
+        //[Alias("montem")]
+        //[Summary("Get montem buffer price for a given commodity. '3 BDE' 'BDE 3' 'BDE' '3 BDE 2400.34' and 'BDE 3 2400.34' are all valid.")]
+        //public async Task MontemBufferPriceAsync(string commodity)
+        //{
+        //    await VallisBufferPriceAsync(1, commodity);
+
+        //}
+
+        //[Command("montem")]
+        //[Alias("montem")]
+        //[Summary("Get montem buffer price for a given commodity. '3 BDE' 'BDE 3' 'BDE' '3 BDE 2400.34' and 'BDE 3 2400.34' are all valid.")]
+        //public async Task MontemBufferPriceAsync(string commodity, int quantity)
+        //{
+        //    await VallisBufferPriceAsync(quantity, commodity);
+
+        //}
 
         #endregion
 
