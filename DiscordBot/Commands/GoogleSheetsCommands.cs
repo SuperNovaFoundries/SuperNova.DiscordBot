@@ -547,6 +547,8 @@ namespace SuperNova.DiscordBot.Commands
         [Import]
         private IGoogleSheetsProxy _sheetsProxy { get; set; } = null;
 
+
+        private static Test LogTest = new Test("GoogleSheets");
         [Import]
         private IConnectionService _connectionService { get; set; } = null;
 
@@ -605,10 +607,10 @@ namespace SuperNova.DiscordBot.Commands
             if (Context.IsPrivate)
             {
                 var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
-                //LogTest.LogError($"USER WAS NOT AUTHENTICATED: {Context.User.Username}#{Context.User.DiscriminatorValue}")
+                LogTest.LogInformation($"USER WAS NOT AUTHENTICATED: {Context.User.Username}#{Context.User.DiscriminatorValue}");
 
                 if(!authorized){
-                    await ReplyAsync($"I couldn't authorize you... does {Context.User.Username}#{Context.User.DiscriminatorValue} match your discord username, and are you registered to use this command?");
+                    await ReplyAsync($"Couldn't authorize this request... Is {Context.User.Username}#{Context.User.DiscriminatorValue} your user name?");
                     return;
                 }
             }
@@ -645,8 +647,7 @@ namespace SuperNova.DiscordBot.Commands
                 var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
                 if (!authorized)
                 {
-                    var logChannel = _connectionService.Client.GetChannel(833055288953012344) as IMessageChannel;
-                    await logChannel.SendMessageAsync($"{Context.User.Username}#{Context.User.DiscriminatorValue} tried to use !cp but was unauthorized...");
+                    await ReplyAsync($"Couldn't authorize this request... Is {Context.User.Username}#{Context.User.DiscriminatorValue} your user name?");
                     return;
                 }
             }
@@ -681,8 +682,8 @@ namespace SuperNova.DiscordBot.Commands
                 var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
                 if (!authorized)
                 {
-                    authorized = await IsMember($"{Context.User.Username}#{Context.User.Discriminator}");
-                    if(!authorized) return;
+                    await ReplyAsync($"Couldn't authorize this request... Is {Context.User.Username}#{Context.User.DiscriminatorValue} your user name?");
+                    return;
                 }
             }
 

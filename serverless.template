@@ -75,9 +75,9 @@ Resources:
                 Mode: "Active"
             Environment:
                 Variables:
-                  - LOGGING_LEVEL: !Ref LoggingLevel 
-                  - BID_SHEET: "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E"
-                  - CORP_SHEET: "1xtV9MTohgWfm3oN7kmms0Fa4Lw_Wg8358qrPXWvA3nM"
+                  LOGGING_LEVEL: !Ref LoggingLevel 
+                  BID_SHEET: "1qWTf-pyPrTXM005QU6wfc85b-h-WTJt6ojV2e0Bi26E"
+                  CORP_SHEET: "1xtV9MTohgWfm3oN7kmms0Fa4Lw_Wg8358qrPXWvA3nM"
     BotRunTrigger:
         Type: "AWS::Events::Rule"
         Properties:
