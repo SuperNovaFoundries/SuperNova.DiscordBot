@@ -606,10 +606,10 @@ namespace SuperNova.DiscordBot.Commands
 
             if (Context.IsPrivate)
             {
-                var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
-                LogTest.LogInformation($"USER WAS NOT AUTHENTICATED: {Context.User.Username}#{Context.User.DiscriminatorValue}");
-
-                if(!authorized){
+                var discriminator = FixDiscriminatorValue(Context.User.DiscriminatorValue);
+                var authorized = await IsMember($"{Context.User.Username}#{discriminator}");
+                if (!authorized)
+                {
                     await ReplyAsync($"Couldn't authorize this request... Is {Context.User.Username}#{Context.User.DiscriminatorValue} your user name?");
                     return;
                 }
@@ -644,7 +644,8 @@ namespace SuperNova.DiscordBot.Commands
             }
             if (Context.IsPrivate)
             {
-                var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
+                var discriminator = FixDiscriminatorValue(Context.User.DiscriminatorValue);
+                var authorized = await IsMember($"{Context.User.Username}#{discriminator}");
                 if (!authorized)
                 {
                     await ReplyAsync($"Couldn't authorize this request... Is {Context.User.Username}#{Context.User.DiscriminatorValue} your user name?");
@@ -679,7 +680,9 @@ namespace SuperNova.DiscordBot.Commands
             }
             if (Context.IsPrivate)
             {
-                var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
+
+                var discriminator = FixDiscriminatorValue(Context.User.DiscriminatorValue);
+                var authorized = await IsMember($"{Context.User.Username}#{discriminator}");
                 if (!authorized)
                 {
                     await ReplyAsync($"Couldn't authorize this request... Is {Context.User.Username}#{Context.User.DiscriminatorValue} your user name?");
@@ -710,6 +713,20 @@ namespace SuperNova.DiscordBot.Commands
             var total = price * quantity;
             await ReplyAsync($"{quantity} {commodity} = {total} NCC");
 
+        }
+
+        private string FixDiscriminatorValue(ushort discriminatorValue)
+        {
+            string value = Context.User.DiscriminatorValue.ToString();
+            if (value.Length < 4)
+            {
+                var numberOfZerosToInsert = 4 - value.Length;
+                for (int i = 0; i < numberOfZerosToInsert; i++)
+                {
+                    value.Insert(0, "0");
+                }
+            }
+            return value;
         }
 
         [Command("vallis")]
@@ -809,7 +826,8 @@ namespace SuperNova.DiscordBot.Commands
             }
             if (Context.IsPrivate)
             {
-                var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
+                var discriminator = FixDiscriminatorValue(Context.User.DiscriminatorValue);
+                var authorized = await IsMember($"{Context.User.Username}#{discriminator}");
                 if (!authorized)
                 {
                     await ReplyAsync($"Couldn't authorize this request... Is {Context.User.Username}#{Context.User.DiscriminatorValue} your user name?");
@@ -848,7 +866,8 @@ namespace SuperNova.DiscordBot.Commands
             }
             if (Context.IsPrivate)
             {
-                var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
+                var discriminator = FixDiscriminatorValue(Context.User.DiscriminatorValue);
+                var authorized = await IsMember($"{Context.User.Username}#{discriminator}");
                 if (!authorized)
                 {
                     await ReplyAsync($"Couldn't authorize this request... Is {Context.User.Username}#{Context.User.DiscriminatorValue} your user name?");
