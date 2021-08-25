@@ -812,8 +812,7 @@ namespace SuperNova.DiscordBot.Commands
                 var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
                 if (!authorized)
                 {
-                    var logChannel = _connectionService.Client.GetChannel(833055288953012344) as IMessageChannel;
-                    await logChannel.SendMessageAsync($"{Context.User.Username}#{Context.User.DiscriminatorValue} tried to use !cp but was unauthorized...");
+                    await ReplyAsync($"Couldn't authorize this request... Is {Context.User.Username}#{Context.User.DiscriminatorValue} your user name?");
                     return;
                 }
             }
@@ -852,6 +851,7 @@ namespace SuperNova.DiscordBot.Commands
                 var authorized = await IsMember($"{Context.User.Username}#{Context.User.DiscriminatorValue}");
                 if (!authorized)
                 {
+                    await ReplyAsync($"Couldn't authorize this request... Is {Context.User.Username}#{Context.User.DiscriminatorValue} your user name?");
                     return;
                 }
             }
