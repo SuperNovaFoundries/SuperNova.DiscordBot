@@ -610,7 +610,7 @@ namespace SuperNova.DiscordBot.Commands
                 var authorized = await IsMember($"{Context.User.Username}#{discriminator}");
                 if (!authorized)
                 {
-                    await ReplyAsync($"Couldn't authorize this request... Is {Context.User.Username}#{Context.User.DiscriminatorValue} your user name?");
+                    await ReplyAsync($"Couldn't authorize this request... Is {Context.User.Username}#{discriminator} your user name?");
                     return;
                 }
             }
@@ -648,7 +648,7 @@ namespace SuperNova.DiscordBot.Commands
                 var authorized = await IsMember($"{Context.User.Username}#{discriminator}");
                 if (!authorized)
                 {
-                    await ReplyAsync($"Couldn't authorize this request... Is {Context.User.Username}#{Context.User.DiscriminatorValue} your user name?");
+                    await ReplyAsync($"Couldn't authorize this request... Is {Context.User.Username}#{discriminator} your user name?");
                     return;
                 }
             }
@@ -685,7 +685,7 @@ namespace SuperNova.DiscordBot.Commands
                 var authorized = await IsMember($"{Context.User.Username}#{discriminator}");
                 if (!authorized)
                 {
-                    await ReplyAsync($"Couldn't authorize this request... Is {Context.User.Username}#{Context.User.DiscriminatorValue} your user name?");
+                    await ReplyAsync($"Couldn't authorize this request... Is {Context.User.Username}#{discriminator} your user name?");
                     return;
                 }
             }
@@ -830,7 +830,7 @@ namespace SuperNova.DiscordBot.Commands
                 var authorized = await IsMember($"{Context.User.Username}#{discriminator}");
                 if (!authorized)
                 {
-                    await ReplyAsync($"Couldn't authorize this request... Is {Context.User.Username}#{Context.User.DiscriminatorValue} your user name?");
+                    await ReplyAsync($"Couldn't authorize this request... Is {Context.User.Username}#{discriminator} your user name?");
                     return;
                 }
             }
@@ -870,7 +870,7 @@ namespace SuperNova.DiscordBot.Commands
                 var authorized = await IsMember($"{Context.User.Username}#{discriminator}");
                 if (!authorized)
                 {
-                    await ReplyAsync($"Couldn't authorize this request... Is {Context.User.Username}#{Context.User.DiscriminatorValue} your user name?");
+                    await ReplyAsync($"Couldn't authorize this request... Is {Context.User.Username}#{discriminator} your user name?");
                     return;
                 }
             }
