@@ -717,6 +717,7 @@ namespace SuperNova.DiscordBot.Commands
 
         private string FixDiscriminatorValue(ushort discriminatorValue)
         {
+            LogTest.LogInformation($"Fixing Discriminator Value: {discriminatorValue}");
             string value = Context.User.DiscriminatorValue.ToString();
             if (value.Length < 4)
             {
@@ -726,6 +727,7 @@ namespace SuperNova.DiscordBot.Commands
                     value.Insert(0, "0");
                 }
             }
+            LogTest.LogInformation($"Fixed discriminator value: {value}");
             return value;
         }
 
