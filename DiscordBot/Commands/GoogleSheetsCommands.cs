@@ -724,7 +724,7 @@ namespace SuperNova.DiscordBot.Commands
                 var numberOfZerosToInsert = 4 - value.Length;
                 for (int i = 0; i < numberOfZerosToInsert; i++)
                 {
-                    value.Insert(0, "0");
+                    value = value.Insert(0, "0");
                 }
             }
             LogTest.LogInformation($"Fixed discriminator value: {value}");
